@@ -8,6 +8,8 @@ using namespace std;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const float PLAYER_SPEED = 200.0f;
+const float BOMB_TIMER_DURATION = 2.0f;
+const float EXPLOSION_TIMER_DURATION = 0.5f; 
 
 class Player {
 public:
@@ -61,20 +63,47 @@ public:
     {
         shape.setSize(sf::Vector2f(50.0f, 50.0f));
         loadTexture();
+        isExploded = false;
+        bombTimer = 0.0f;
+        explosionTimer = 0.0f;
+        shouldRemove = false;
     }
 
     void loadTexture()
     {
         texture.loadFromFile("assets/bomb.png");
+        explosionTexture.loadFromFile("assets/explosion.png");
         shape.setTexture(&texture);
     }
+    void update(sf::Time deltaTime)
+    {
+        if (!isExploded) {
+            bombTimer += deltaTime.asSeconds();
+            if (bombTimer >= BOMB_TIMER_DURATION) {
+                shape.setTexture(&explosionTexture);
+                isExploded = true;
+                explosionTimer = 0.0f;
+            }
+        } else {
+            explosionTimer += deltaTime.asSeconds();
+            if (explosionTimer >= EXPLOSION_TIMER_DURATION) {
+                shouldRemove = true;
+            }
+        }
+    }
 
+    bool remove() {return shouldRemove; }
     void draw(sf::RenderWindow& window) { window.draw(shape); }
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
 
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
+    sf::Texture explosionTexture;
+    bool isExploded;
+    bool shouldRemove;
+    float bombTimer;
+    float explosionTimer;
 };
 
 class HardObstacle {
@@ -150,6 +179,12 @@ class Game
 public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
         
+    void removeExpiredBombs()
+    {
+        bombs.erase(std::remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) {
+            return bomb.remove();
+        }), bombs.end());
+    }
     void drawTexture(){
             int numTilesX = window.getSize().x / 50;
             int numTilesY = window.getSize().y / 50;
@@ -195,6 +230,7 @@ public:
             render();
         }
     }
+
 
     void handlePlayerMovement(sf::Time deltaTime)
     {
@@ -319,6 +355,10 @@ private:
     {
         handlePlayerMovement(deltaTime);
         handleBombPlacement();
+        for (Bomb& bomb : bombs) {
+            bomb.update(deltaTime);
+        }
+        removeExpiredBombs();
     }
 
     void render()
