@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -54,7 +55,6 @@ private:
     sf::Texture textureRight;
 };
 
-
 class Bomb {
 public:
     Bomb()
@@ -66,6 +66,50 @@ public:
     void loadTexture()
     {
         texture.loadFromFile("assets/bomb.png");
+        shape.setTexture(&texture);
+    }
+
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
+
+class HardObstacle {
+public:
+    HardObstacle()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+    }
+
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/wall-2.png");
+        shape.setTexture(&texture);
+    }
+
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
+
+class SoftObstacle {
+public:
+    SoftObstacle()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+    }
+
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/wall-1.png");
         shape.setTexture(&texture);
     }
 
@@ -115,10 +159,34 @@ public:
                     grass.draw(window);
                 }
             }
+
+            int numRows = map.size();
+            int numCols = (numRows > 0) ? map[0].size() : 0;
+            for (int i = 0; i < numRows; ++i)
+            {
+                for (int j = 0; j < numCols; ++j)
+                {
+                    char c = map[i][j];
+                    sf::Vector2f position(j * 50, i * 50);
+                    if (c == 'B')
+                    {
+                        SoftObstacle obs;
+                        obs.setPosition(position);
+                        obs.draw(window);
+                    }
+                    else if (c == 'P')
+                    {
+                        HardObstacle obs;
+                        obs.setPosition(position);
+                        obs.draw(window);
+                    }
+                }
+            }
     }
     
     void run() {
         sf::Clock clock;
+        initial();
         while (window.isOpen())
         {
             sf::Time deltaTime = clock.restart();
@@ -131,7 +199,6 @@ public:
     void handlePlayerMovement(sf::Time deltaTime)
     {
         sf::Vector2f movement(0.0f, 0.0f);
-
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
         {
             movement.y -= PLAYER_SPEED * deltaTime.asSeconds();
@@ -187,7 +254,36 @@ public:
         }
     }
 
+    void readMapFile(const std::string& filename)
+    {
+        std::ifstream file(filename);
+        if (file.is_open())
+        {
+            std::string line;
+            while (std::getline(file, line))
+            {
+                std::vector<char> row;
+                for (char c : line)
+                {
+                    row.push_back(c);
+                }
+                map.push_back(row);
+            }
+            file.close();
+        }
+        else
+        {
+            std::cerr << "Failed to open the map file." << std::endl;
+        }
+    }
+
 private:
+
+    void initial()
+    {
+        readMapFile("map.txt");
+    }
+
     void processEvents()
     {
         sf::Event event;
@@ -220,6 +316,7 @@ private:
     Player player;
     vector<Bomb> bombs;
     Grass grass;
+    vector<vector<char>> map;
 };
 
 int main()
