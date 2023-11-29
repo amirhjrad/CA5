@@ -224,7 +224,28 @@ public:
         sf::FloatRect playerBounds = player.getBounds();
         sf::FloatRect windowBounds(0.0f, 0.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        if (windowBounds.contains(newPosition) &&
+        sf::FloatRect newBounds(newPosition, sf::Vector2f(playerBounds.width, playerBounds.height));
+        bool obstacleCollision = false;
+        for (int i = 0; i < map.size(); ++i)
+        {
+            for (int j = 0; j < map[i].size(); ++j)
+            {
+                char c = map[i][j];
+                sf::Vector2f obstaclePosition(j * 50, i * 50);
+                sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(50.0f, 50.0f));
+
+                if (c == 'B' || c == 'P')
+                {
+                    if (newBounds.intersects(obstacleBounds))
+                    {
+                        obstacleCollision = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!obstacleCollision && windowBounds.contains(newPosition) &&
             windowBounds.contains(newPosition + sf::Vector2f(playerBounds.width, playerBounds.height)))
         {
             player.move(movement);
