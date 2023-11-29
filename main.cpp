@@ -14,7 +14,7 @@ const float EXPLOSION_TIMER_DURATION = 0.5f;
 class Player {
 public:
     Player(){
-        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        shape.setSize(sf::Vector2f(45.0f, 45.0f));
         shape.setPosition(0.0f, 0.0f);
         loadTexture();
         setTexture("Right");
@@ -68,7 +68,7 @@ public:
         explosionTimer = 0.0f;
         shouldRemove = false;
     }
-
+    
     void loadTexture()
     {
         texture.loadFromFile("assets/bomb.png");
@@ -91,7 +91,7 @@ public:
             }
         }
     }
-
+    sf::Vector2f getPosition() { return shape.getPosition(); }
     bool remove() {return shouldRemove; }
     void draw(sf::RenderWindow& window) { window.draw(shape); }
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
@@ -179,44 +179,70 @@ class Game
 public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
         
+
+    void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
+    {
+        int bombGridX = static_cast<int>(bombPosition.x) / 50;
+        int bombGridY = static_cast<int>(bombPosition.y) / 50;
+
+        // Remove SoftObstacle objects around the bomb within a certain radius
+        int radius = 1; // Adjust the radius as needed
+        for (int i = bombGridY - radius; i <= bombGridY + radius; ++i)
+        {
+            for (int j = bombGridX - radius; j <= bombGridX + radius; ++j)
+            {
+                if (i >= 0 && i < map.size() && j >= 0 && j < map[i].size())
+                {
+                    if (map[i][j] == 'B')
+                    {
+                        map[i][j] = ' ';
+                    }
+                }
+            }
+        }
+    }
+
     void removeExpiredBombs()
     {
         bombs.erase(std::remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) {
             return bomb.remove();
         }), bombs.end());
     }
-    void drawTexture(){
-            int numTilesX = window.getSize().x / 50;
-            int numTilesY = window.getSize().y / 50;
-            for (int i = 0; i < numTilesX; ++i) {
-                for (int j = 0; j < numTilesY; ++j) {
+    void drawTexture()
+    {
+        int numTilesX = window.getSize().x / 50;
+        int numTilesY = window.getSize().y / 50;
+        for (int i = 0; i < numTilesX; ++i) {
+            for (int j = 0; j < numTilesY; ++j) {
+                if (map[j][i] == ' ') {
                     grass.setPosition(sf::Vector2f(i * 50, j * 50));
                     grass.draw(window);
                 }
             }
+        }
 
-            int numRows = map.size();
-            int numCols = (numRows > 0) ? map[0].size() : 0;
-            for (int i = 0; i < numRows; ++i)
+        int numRows = map.size();
+        int numCols = (numRows > 0) ? map[0].size() : 0;
+        for (int i = 0; i < numRows; ++i)
+        {
+            for (int j = 0; j < numCols; ++j)
             {
-                for (int j = 0; j < numCols; ++j)
+                char c = map[i][j];
+                sf::Vector2f position(j * 50, i * 50);
+                if (c == 'B')
                 {
-                    char c = map[i][j];
-                    sf::Vector2f position(j * 50, i * 50);
-                    if (c == 'B')
-                    {
-                        SoftObstacle obs;
-                        obs.setPosition(position);
-                        obs.draw(window);
-                    }
-                    else if (c == 'P')
-                    {
-                        HardObstacle obs;
-                        obs.setPosition(position);
-                        obs.draw(window);
-                    }
+                    SoftObstacle obs;
+                    obs.setPosition(position);
+                    obs.draw(window);
+                }
+                else if (c == 'P')
+                {
+                    HardObstacle obs;
+                    obs.setPosition(position);
+                    obs.draw(window);
                 }
             }
+        }
     }
     
     void run() {
@@ -357,6 +383,9 @@ private:
         handleBombPlacement();
         for (Bomb& bomb : bombs) {
             bomb.update(deltaTime);
+            if (bomb.remove()) {
+                removeSoftObstaclesAroundBomb(bomb.getPosition());
+            }
         }
         removeExpiredBombs();
     }
