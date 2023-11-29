@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <math.h>
 
 using namespace std;
 
@@ -11,51 +12,6 @@ const float PLAYER_SPEED = 200.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
 
-class Player {
-public:
-    Player(){
-        shape.setSize(sf::Vector2f(45.0f, 45.0f));
-        shape.setPosition(0.0f, 0.0f);
-        loadTexture();
-        setTexture("Right");
-    }
-
-    void loadTexture(){
-        textureUp.loadFromFile("assets/boy/up.png");
-        textureDown.loadFromFile("assets/boy/down.png");
-        textureLeft.loadFromFile("assets/boy/left.png");
-        textureRight.loadFromFile("assets/boy/right.png");
-    }
-
-    void move(sf::Vector2f& movement) { shape.move(movement); }
-
-    void setPosition(sf::Vector2f& position) { shape.setPosition(position); }
-
-    sf::Vector2f getPosition() { return shape.getPosition(); }
-
-    sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
-
-    void draw(sf::RenderWindow& window) { window.draw(shape); }
-
-    void setTexture(string direction)
-    {
-        if (direction == "Up")
-            shape.setTexture(&textureUp);
-        else if (direction == "Down")
-            shape.setTexture(&textureDown);
-        else if (direction == "Right")
-            shape.setTexture(&textureRight);
-        else if (direction == "Left")
-            shape.setTexture(&textureLeft);
-    }
-
-private:
-    sf::RectangleShape shape;
-    sf::Texture textureUp;
-    sf::Texture textureDown;
-    sf::Texture textureLeft;
-    sf::Texture textureRight;
-};
 
 class Bomb {
 public:
@@ -104,6 +60,80 @@ private:
     bool shouldRemove;
     float bombTimer;
     float explosionTimer;
+};
+
+
+class Player {
+public:
+    Player(){
+        shape.setSize(sf::Vector2f(45.0f, 45.0f));
+        shape.setPosition(0.0f, 0.0f);
+        loadTexture();
+        setTexture("Right");
+        numOfBombs = 0;
+        lives = 3;
+    }
+
+    void loadTexture(){
+        textureUp.loadFromFile("assets/boy/up.png");
+        textureDown.loadFromFile("assets/boy/down.png");
+        textureLeft.loadFromFile("assets/boy/left.png");
+        textureRight.loadFromFile("assets/boy/right.png");
+    }
+
+    bool playerOnBomb(Bomb tmpBomb) {
+        sf::Vector2f playerPos = shape.getPosition();
+        sf::Vector2f bombPos = tmpBomb.getPosition();
+        if(playerPos == bombPos || 
+           playerPos.x >= bombPos.x && playerPos.x <= bombPos.x + 50 ||
+           playerPos.x <= bombPos.x && playerPos.x >= bombPos.x - 50 ||
+           playerPos.y >= bombPos.y && playerPos.y <= bombPos.y + 50 ||
+           playerPos.y <= bombPos.y && playerPos.y >= bombPos.y - 50
+          )
+            return true;
+        else return false;
+    }
+
+    void move(sf::Vector2f& movement) { shape.move(movement); }
+
+    void setPosition(sf::Vector2f& position) { shape.setPosition(position); }
+
+    int getNumOfBombs() { return numOfBombs; }
+
+    int getLives() { return lives; }
+
+    void incNumOfBombs() { numOfBombs += 1 ; }
+
+    void decNumOfBombs() { numOfBombs -= 1 ; }
+    
+    void decLives() { lives -= 1 ; }
+
+    sf::Vector2f getPosition() { return shape.getPosition(); }
+
+    sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
+
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+
+    void setTexture(string direction)
+    {
+        if (direction == "Up")
+            shape.setTexture(&textureUp);
+        else if (direction == "Down")
+            shape.setTexture(&textureDown);
+        else if (direction == "Right")
+            shape.setTexture(&textureRight);
+        else if (direction == "Left")
+            shape.setTexture(&textureLeft);
+    }
+
+private:
+    sf::RectangleShape shape;
+    sf::Texture textureUp;
+    sf::Texture textureDown;
+    sf::Texture textureLeft;
+    sf::Texture textureRight;
+    int numOfBombs;
+    int lives;
 };
 
 class HardObstacle {
@@ -239,13 +269,25 @@ public:
         }
     }
     
+    void EndGame() 
+    {
+        window.clear();
+        sf::Font font;
+        font.loadFromFile("assets/arial.ttf");
+        sf::Text message("You have lost", font, 24);
+        message.setFillColor(sf::Color::White);
+        message.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+        window.draw(message);
+        window.display();
+    }
+
     void run() {
         sf::Clock clock;
         initial();
         while (window.isOpen())
         {
             sf::Time deltaTime = clock.restart();
-            processEvents();
+            processEvents(deltaTime);
             update(deltaTime);
             render();
         }
@@ -310,25 +352,20 @@ public:
 
     void handleBombPlacement()
     {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
-        {
-            sf::Vector2f playerPosition = player.getPosition();
-
-            // Calculate the grid position within the grass area
-            int gridX = static_cast<int>(playerPosition.x + player.getBounds().width / 2) / 50;
-            int gridY = static_cast<int>(playerPosition.y + player.getBounds().height / 2) / 50;
-
-            // Calculate the position within the grass area
-            float positionX = (gridX * 50);
-            float positionY = (gridY * 50);
-
-            // Set the bomb only if the center of the player position is within the grass area
-            if (gridX >= 0 && gridX < (WINDOW_WIDTH / 50) && gridY >= 0 && gridY < (WINDOW_HEIGHT / 50))
+            if(player.getNumOfBombs() <= 3)
             {
-                tmpBomb.setPosition(sf::Vector2f(positionX, positionY));
-                bombs.push_back(tmpBomb);
+                sf::Vector2f playerPosition = player.getPosition();
+                int gridX = static_cast<int>(playerPosition.x + player.getBounds().width / 2) / 50;
+                int gridY = static_cast<int>(playerPosition.y + player.getBounds().height / 2) / 50;
+                float positionX = (gridX * 50);
+                float positionY = (gridY * 50);
+                if (gridX >= 0 && gridX < (WINDOW_WIDTH / 50) && gridY >= 0 && gridY < (WINDOW_HEIGHT / 50))
+                {
+                    tmpBomb.setPosition(sf::Vector2f(positionX, positionY));
+                    bombs.push_back(tmpBomb);
+                }
+                player.incNumOfBombs();
             }
-        }
     }
 
     void readMapFile(const std::string& filename)
@@ -361,24 +398,44 @@ private:
         readMapFile("map.txt");
     }
 
-    void processEvents()
+    void processEvents(sf::Time deltaTime)
     {
         sf::Event event;
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::X)
+                handleBombPlacement();
+            /* if (event.type == sf::Event::KeyPressed && 
+                     (event.key.code == sf::Keyboard::W ||
+                      event.key.code == sf::Keyboard::Up ||
+                      event.key.code == sf::Keyboard::S ||
+                      event.key.code == sf::Keyboard::Down ||
+                      event.key.code == sf::Keyboard::D ||
+                      event.key.code == sf::Keyboard::Right ||
+                      event.key.code == sf::Keyboard::A ||
+                      event.key.code == sf::Keyboard::Left))
+                        handlePlayerMovement(deltaTime); */
         }
     }
 
     void update(sf::Time deltaTime)
     {
+        if(player.getLives() <= 0)
+        {
+            EndGame();
+            finished = true;
+        }
         handlePlayerMovement(deltaTime);
-        handleBombPlacement();
         for (Bomb& bomb : bombs) {
             bomb.update(deltaTime);
             if (bomb.remove()) {
+                player.decNumOfBombs();
                 removeSoftObstaclesAroundBomb(bomb.getPosition());
+                if(player.playerOnBomb(bomb)) {
+                    player.decLives();
+                }
             }
         }
         removeExpiredBombs();
@@ -392,7 +449,8 @@ private:
         for(Bomb &tmpBomb : bombs){
             tmpBomb.draw(window);
         }
-        window.display();
+        if(!finished)
+            window.display();
     }
 
     Bomb tmpBomb;
@@ -401,6 +459,7 @@ private:
     vector<Bomb> bombs;
     Grass grass;
     vector<vector<char>> map;
+    int finished = false;
 };
 
 int main()
