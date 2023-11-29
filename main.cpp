@@ -184,22 +184,15 @@ public:
     {
         int bombGridX = static_cast<int>(bombPosition.x) / 50;
         int bombGridY = static_cast<int>(bombPosition.y) / 50;
-
-        // Remove SoftObstacle objects around the bomb within a certain radius
-        int radius = 1; // Adjust the radius as needed
-        for (int i = bombGridY - radius; i <= bombGridY + radius; ++i)
-        {
-            for (int j = bombGridX - radius; j <= bombGridX + radius; ++j)
-            {
-                if (i >= 0 && i < map.size() && j >= 0 && j < map[i].size())
-                {
-                    if (map[i][j] == 'B')
-                    {
-                        map[i][j] = ' ';
-                    }
-                }
-            }
-        }
+        int radius = 1; 
+        if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
+            map[bombGridY - radius][bombGridX] = ' ';
+        if (bombGridY + radius < map.size() && map[bombGridY + radius][bombGridX] == 'B')
+            map[bombGridY + radius][bombGridX] = ' ';
+        if (bombGridX - radius >= 0 && map[bombGridY][bombGridX - radius] == 'B')
+            map[bombGridY][bombGridX - radius] = ' ';
+        if (bombGridX + radius < map[bombGridY].size() && map[bombGridY][bombGridX + radius] == 'B')
+            map[bombGridY][bombGridX + radius] = ' ';
     }
 
     void removeExpiredBombs()
@@ -208,6 +201,7 @@ public:
             return bomb.remove();
         }), bombs.end());
     }
+    
     void drawTexture()
     {
         int numTilesX = window.getSize().x / 50;

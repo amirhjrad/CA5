@@ -1,12 +1,12 @@
       B         
-      B         
-      B         
-P     PPP       
-      B         
-      B         
-      B         
-      B         
-      B         
-      B         
-      B         
-      B   P     
+B     B      BBBB
+B     B      B  
+B     P   BBBB  
+B     PPPPP     
+B               
+B               
+B     BBBB  BBBB
+B     B  B  B   
+B     B  BBBB   
+B     B         
+BBBBBBB   P     
