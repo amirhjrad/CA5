@@ -77,33 +77,44 @@ private:
     sf::Texture texture;
 };
 
+class Grass
+{
+public:
+    Grass()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+    };
+
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/grass.png");
+        shape.setTexture(&texture);
+    }
+
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
 
 
 class Game
 {
 public:
-    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") {
-        loadTexture();
-    }
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
         
     void drawTexture(){
-        int numTilesX = WINDOW_WIDTH / 50;
-            int numTilesY = WINDOW_HEIGHT / 50;
-
-            // Draw grass tiles to cover the window
+            int numTilesX = window.getSize().x / 50;
+            int numTilesY = window.getSize().y / 50;
             for (int i = 0; i < numTilesX; ++i) {
                 for (int j = 0; j < numTilesY; ++j) {
-                    sf::Sprite grassSprite;
-                    grassSprite.setTexture(textureGrass);
-                    grassSprite.setTextureRect(sf::IntRect(0, 0, 50, 50));  // Set the texture rectangle size to 50x50
-                    grassSprite.setPosition(i * 50, j * 50);  // Set the position based on the tile size
-                    window.draw(grassSprite);
+                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
+                    grass.draw(window);
                 }
             }
-    }
-
-    void loadTexture(){
-        textureGrass.loadFromFile("assets/grass.png");
     }
     
     void run() {
@@ -175,7 +186,7 @@ public:
             }
         }
     }
-//xdasda
+
 private:
     void processEvents()
     {
@@ -208,7 +219,7 @@ private:
     sf::RenderWindow window;
     Player player;
     vector<Bomb> bombs;
-    sf::Texture textureGrass;
+    Grass grass;
 };
 
 int main()
