@@ -405,7 +405,7 @@ public:
         sf::Text livesText("Lives: " + std::to_string(player.getLives()), font, 20);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(10, 10);
-        window.draw(livesText);
+        window.draw(livesText);   
     }
 private:
 
