@@ -62,16 +62,15 @@ private:
     float explosionTimer;
 };
 
-
 class Player {
 public:
     Player(){
-        shape.setSize(sf::Vector2f(45.0f, 45.0f));
-        shape.setPosition(0.0f, 0.0f);
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        shape.setPosition(0.0f, 50.0f);
         loadTexture();
         setTexture("Right");
         numOfBombs = 0;
-        lives = 3;
+        lives = 2;
     }
 
     void loadTexture(){
@@ -84,11 +83,15 @@ public:
     bool playerOnBomb(Bomb tmpBomb) {
         sf::Vector2f playerPos = shape.getPosition();
         sf::Vector2f bombPos = tmpBomb.getPosition();
+        float PlayerXPos = (playerPos.x + 50/2);
+        float PlayerYPos = (playerPos.y + 50/2);
+        cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
+        cout << "bomb(" << bombPos.x << "," << bombPos.y << ")" << endl;
         if(playerPos == bombPos || 
-           playerPos.x >= bombPos.x && playerPos.x <= bombPos.x + 50 ||
-           playerPos.x <= bombPos.x && playerPos.x >= bombPos.x - 50 ||
-           playerPos.y >= bombPos.y && playerPos.y <= bombPos.y + 50 ||
-           playerPos.y <= bombPos.y && playerPos.y >= bombPos.y - 50
+          (PlayerXPos > bombPos.x && PlayerXPos <= (bombPos.x + 2*50.0) && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
+          (PlayerXPos < bombPos.x && playerPos.x >= bombPos.x - 2*50.0 && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
+          (PlayerYPos <= bombPos.y + 50 && PlayerYPos >= bombPos.y - 50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2) ||
+          (PlayerYPos >= bombPos.y && PlayerYPos <= bombPos.y + 2*50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2)
           )
             return true;
         else return false;
@@ -273,7 +276,7 @@ public:
     {
         window.clear();
         sf::Font font;
-        font.loadFromFile("assets/arial.ttf");
+        font.loadFromFile("assets/fonts/arial.ttf");
         sf::Text message("You have lost", font, 24);
         message.setFillColor(sf::Color::White);
         message.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
@@ -292,7 +295,6 @@ public:
             render();
         }
     }
-
 
     void handlePlayerMovement(sf::Time deltaTime)
     {
@@ -320,7 +322,7 @@ public:
 
         sf::Vector2f newPosition = player.getPosition() + movement;
         sf::FloatRect playerBounds = player.getBounds();
-        sf::FloatRect windowBounds(0.0f, 0.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
+        sf::FloatRect windowBounds(0.0f, 50.0f - 6, WINDOW_WIDTH, WINDOW_HEIGHT - 50.0f - 6);
 
         sf::FloatRect newBounds(newPosition, sf::Vector2f(playerBounds.width, playerBounds.height));
         bool obstacleCollision = false;
@@ -330,7 +332,7 @@ public:
             {
                 char c = map[i][j];
                 sf::Vector2f obstaclePosition(j * 50, i * 50);
-                sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(50.0f, 50.0f));
+                sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(40.0f, 40.0f));
 
                 if (c == 'B' || c == 'P')
                 {
@@ -352,7 +354,7 @@ public:
 
     void handleBombPlacement()
     {
-            if(player.getNumOfBombs() <= 3)
+            if(player.getNumOfBombs() < 3)
             {
                 sf::Vector2f playerPosition = player.getPosition();
                 int gridX = static_cast<int>(playerPosition.x + player.getBounds().width / 2) / 50;
@@ -371,26 +373,40 @@ public:
     void readMapFile(const std::string& filename)
     {
         std::ifstream file(filename);
-        if (file.is_open())
+        std::string line;
+        int first = 1;
+        while (std::getline(file, line))
         {
-            std::string line;
-            while (std::getline(file, line))
+            std::vector<char> row;
+            if(!first)
             {
-                std::vector<char> row;
                 for (char c : line)
                 {
                     row.push_back(c);
                 }
-                map.push_back(row);
             }
-            file.close();
+            else {
+                for (int j=0 ; j< WINDOW_WIDTH/50; j++)
+                    row.push_back('.');
+                first = 0;
+            }
+            map.push_back(row);
+                
         }
-        else
-        {
-            std::cerr << "Failed to open the map file." << std::endl;
-        }
+        file.close();
     }
 
+    void drawInfoBoard() {
+        sf::RectangleShape livesSection(sf::Vector2f(WINDOW_WIDTH, 50));
+        livesSection.setFillColor(sf::Color(128,128,128));
+        window.draw(livesSection);
+        sf::Font font;
+        font.loadFromFile("assets/fonts/arial.ttf");
+        sf::Text livesText("Lives: " + std::to_string(player.getLives()), font, 20);
+        livesText.setFillColor(sf::Color::White);
+        livesText.setPosition(10, 10);
+        window.draw(livesText);
+    }
 private:
 
     void initial()
@@ -449,6 +465,7 @@ private:
         for(Bomb &tmpBomb : bombs){
             tmpBomb.draw(window);
         }
+        drawInfoBoard();
         if(!finished)
             window.display();
     }

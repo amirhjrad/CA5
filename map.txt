@@ -1,5 +1,5 @@
-      B         
-B     B      BBBB
+12
+      B      BBB
 B     B      B  
 B     P   BBBB  
 B     PPPPP     
