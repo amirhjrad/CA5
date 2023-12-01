@@ -211,11 +211,11 @@ private:
 class Key 
 {
 public:
-    Key(sf::RenderWindow& window, std::vector<sf::Vector2f> positions) : window_(window), positions_(positions)
+    Key(sf::RenderWindow& window, vector<sf::Vector2f> positions) : window_(window), positions_(positions)
     {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, positions_.size() - 1);
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dis(0, positions_.size() - 1);
 
         for (int i = 0; i < 3; i++) 
         {
@@ -239,10 +239,11 @@ public:
 
 private:
     sf::RenderWindow& window_;
-    std::vector<sf::Vector2f> positions_;
-    std::vector<sf::RectangleShape> shape_;
+    vector<sf::Vector2f> positions_;
+    vector<sf::RectangleShape> shape_;
     int collectedKeys;
 };
+
 
 class Game
 {
@@ -254,6 +255,10 @@ public:
 
     }
     void removeCollectedKeys()
+    {
+
+    }
+    void collectKeys()
     {
 
     }
@@ -521,6 +526,7 @@ private:
         if(!finished)
             window.display();
     }
+
 
     Bomb tmpBomb;
     sf::RenderWindow window;
