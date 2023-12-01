@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
+#include <random>
 
 using namespace std;
 
@@ -177,6 +178,7 @@ public:
 
     void draw(sf::RenderWindow& window) { window.draw(shape); }
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+    //vector2f getposition() {return }
 
 private:
     sf::RectangleShape shape;
@@ -225,7 +227,8 @@ public:
             shape_[i].setPosition(position);
         }
     }
-
+    void incCollectedKeysNum() {collectedKeys += 1;}
+    int getCollectedKeys() {return collectedKeys;}
     void draw() 
     {
         for (auto& shape : shape_) 
@@ -238,6 +241,7 @@ private:
     sf::RenderWindow& window_;
     std::vector<sf::Vector2f> positions_;
     std::vector<sf::RectangleShape> shape_;
+    int collectedKeys;
 };
 
 class Game
@@ -245,7 +249,14 @@ class Game
 public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
         
+    void revealKeys()
+    {
 
+    }
+    void removeCollectedKeys()
+    {
+
+    }
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     {
         int bombGridX = static_cast<int>(bombPosition.x) / 50;
@@ -438,7 +449,15 @@ public:
         sf::Text livesText("Lives: " + std::to_string(player.getLives()), font, 20);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(10, 10);
-        window.draw(livesText);   
+        window.draw(livesText); 
+
+        // sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
+        // keysSection.setFillColor(sf::Color(128,128,128));
+        // window.draw(keysSection);
+        // sf::Text keysText("Keys: " + std::to_string(keys.getCollectedKeys()), font, 20);
+        // keysText.setFillColor(sf::Color::White);
+        // keysText.setPosition(20, 10);
+        // window.draw(keysText); 
     }
 private:
 
@@ -506,6 +525,7 @@ private:
     Bomb tmpBomb;
     sf::RenderWindow window;
     Player player;
+    //Key keys;
     vector<Bomb> bombs;
     Grass grass;
     vector<vector<char>> map;
