@@ -206,6 +206,39 @@ private:
     sf::Texture texture;
 };
 
+class Key 
+{
+public:
+    Key(sf::RenderWindow& window, std::vector<sf::Vector2f> positions) : window_(window), positions_(positions)
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, positions_.size() - 1);
+
+        for (int i = 0; i < 3; i++) 
+        {
+            int index = dis(gen);
+            sf::Vector2f position = positions_[index];
+            positions_.erase(positions_.begin() + index);
+            shape_.push_back(sf::RectangleShape(sf::Vector2f(20.f, 20.f)));
+            shape_[i].setFillColor(sf::Color::Yellow);
+            shape_[i].setPosition(position);
+        }
+    }
+
+    void draw() 
+    {
+        for (auto& shape : shape_) 
+        {
+            window_.draw(shape);
+        }
+    }
+
+private:
+    sf::RenderWindow& window_;
+    std::vector<sf::Vector2f> positions_;
+    std::vector<sf::RectangleShape> shape_;
+};
 
 class Game
 {
