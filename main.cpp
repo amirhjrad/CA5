@@ -44,6 +44,8 @@ private:
     sf::RectangleShape shape;
     sf::Texture texture;
     sf::Texture explosionTexture;
+    sf::RenderWindow& window_;
+    std::vector<std::vector<int>> obstacles_;
 };
 class Bomb {
 public:
