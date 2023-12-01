@@ -538,3 +538,100 @@ int main()
     game.run();
     return 0;
 }
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <random>
+
+// class Key {
+// public:
+//     Key(std::vector<std::vector<char>>& map) : map(map) {}
+
+//     void placeKeys() {
+//         std::vector<std::pair<int, int>> bPositions;
+
+//         // Find the positions of 'B' in the map
+//         for (int i = 0; i < map.size(); ++i) {
+//             for (int j = 0; j < map[i].size(); ++j) {
+//                 if (map[i][j] == 'B') {
+//                     bPositions.push_back(std::make_pair(i, j));
+//                 }
+//             }
+//         }
+
+//         // Randomly select three positions to place the keys
+//         std::random_device rd;
+//         std::mt19937 gen(rd());
+//         std::shuffle(bPositions.begin(), bPositions.end(), gen);
+//         std::vector<std::pair<int, int>> keyPositions(bPositions.begin(), bPositions.begin() + 3);
+
+//         // Place the keys in the map
+//         for (const auto& pos : keyPositions) {
+//             map[pos.first][pos.second] = 'K';
+//             keys.push_back(pos);
+//         }
+//     }
+
+//     void displayMap() {
+//         sf::RenderWindow window(sf::VideoMode(400, 300), "Map with Keys");
+
+//         sf::Font font;
+//         if (!font.loadFromFile("arial.ttf")) {
+//             std::cout << "Failed to load font!" << std::endl;
+//             return;
+//         }
+
+//         sf::Text text("", font, 20);
+//         text.setFillColor(sf::Color::Black);
+
+//         sf::Vector2f cellSize(50.f, 50.f);
+
+//         while (window.isOpen()) {
+//             sf::Event event;
+//             while (window.pollEvent(event)) {
+//                 if (event.type == sf::Event::Closed) {
+//                     window.close();
+//                 }
+//             }
+
+//             window.clear(sf::Color::White);
+
+//             for (int i = 0; i < map.size(); ++i) {
+//                 for (int j = 0; j < map[i].size(); ++j) {
+//                     sf::RectangleShape cell(cellSize);
+//                     cell.setPosition(j * cellSize.x, i * cellSize.y);
+
+//                     if (map[i][j] == 'B') {
+//                         cell.setFillColor(sf::Color::Blue);
+//                     } else if (map[i][j] == 'K') {
+//                         cell.setFillColor(sf::Color::Yellow);
+//                     } else {
+//                         cell.setFillColor(sf::Color::White);
+//                     }
+
+//                     window.draw(cell);
+//                 }
+//             }
+
+//             window.display();
+//         }
+//     }
+
+// private:
+//     std::vector<std::vector<char>>& map;
+//     std::vector<std::pair<int, int>> keys;
+// };
+
+// int main() {
+//     std::vector<std::vector<char>> map = {
+//         {'B', 'A', 'A', 'D', 'C'},
+//         {'N', 'B', 'A', 'S', 'B'},
+//         {'B', 'A', 'S', 'B', 'S'}
+//     };
+
+//     Key key(map);
+//     key.placeKeys();
+//     key.displayMap();
+
+//     return 0;
+// }
