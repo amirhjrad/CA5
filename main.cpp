@@ -15,11 +15,7 @@ const float EXPLOSION_TIMER_DURATION = 0.5f;
 class Obstacle
 {
 public:
-    Obstacle()
-    {
-        shape.setSize(sf::Vector2f(50.0f, 50.0f));        
-        loadTexture();
-    }
+    Obstacle(sf::RenderWindow& window, std::vector<std::vector<int>> obstacles) : window_(window), obstacles_(obstacles) {}
     void loadTexture()
     {
         texture.loadFromFile("assets/bomb.png");    //have to change
