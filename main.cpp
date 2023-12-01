@@ -12,41 +12,7 @@ const float PLAYER_SPEED = 200.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
 
-class Obstacle
-{
-public:
-    Obstacle(sf::RenderWindow& window, std::vector<std::vector<int>> obstacles) : window_(window), obstacles_(obstacles) {}
-    void loadTexture()
-    {
-        texture.loadFromFile("assets/bomb.png");    //have to change
-        explosionTexture.loadFromFile("assets/explosion.png");
-        shape.setTexture(&texture);
-    }
-    void draw()
-    {
-        sf::RectangleShape wall(sf::Vector2f(50.f, 50.f));
-        wall.setFillColor(sf::Color::Red);    //have to change
 
-        for (int i = 0; i < Obstacle_.size(); i++) 
-        {
-            for (int j = 0; j < Obstacle_[i].size(); j++) 
-            {
-                if (Obstacle_[i][j] == 1) 
-                {
-                    wall.setPosition(j * 50.f, i * 50.f);
-                    window_.draw(wall);
-                }
-            }
-        }
-    }
-    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
-private:
-    sf::RectangleShape shape;
-    sf::Texture texture;
-    sf::Texture explosionTexture;
-    sf::RenderWindow& window_;
-    std::vector<std::vector<int>> obstacles_;
-};
 class Bomb {
 public:
     Bomb()
