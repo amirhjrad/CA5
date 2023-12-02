@@ -213,11 +213,13 @@ class Key {
 public:
     Key() 
     {
-        //shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
     };
     void loadTexture()
     {
-
+        texture.loadFromFile("assets/key.png");
+        shape.setTexture(&texture);
     }
     vector<vector<char>> placeKeys(const vector<vector<char>>& mapData) 
     {
@@ -246,20 +248,13 @@ public:
         }
         return keysMap;
     }
-
     void incCollectedKeysNum() {collectedKeys += 1;}
     int getCollectedKeys() {return collectedKeys;}
-    void draw(sf::RenderWindow& window) 
-    {
-        for (auto& shape : shape) 
-        {
-            window.draw(shape);
-        }
-    }
+    void draw(sf::RenderWindow& window) {window.draw(shape);}
 
 private:
     vector<vector<char>> map;
-    vector<sf::RectangleShape> shape;
+    sf::RectangleShape shape;
     int collectedKeys;
     sf::Texture texture;
 };
@@ -280,7 +275,7 @@ public:
     }
     void collectKeys()
     {
-
+        
     }
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     {
