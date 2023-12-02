@@ -4,6 +4,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -208,40 +209,59 @@ private:
     sf::Texture texture;
 };
 
-class Key 
-{
+class Key {
 public:
-    Key(sf::RenderWindow& window, vector<sf::Vector2f> positions) : window_(window), positions_(positions)
+    Key() 
     {
+        //shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    };
+    void loadTexture()
+    {
+
+    }
+    vector<vector<char>> placeKeys(const vector<vector<char>>& mapData) 
+    {
+        vector<pair<int, int>> wallPositions;
+
+        for (int i = 0; i < map.size(); ++i) 
+        {
+            for (int j = 0; j < map[i].size(); ++j) 
+            {
+                if (map[i][j] == 'B') 
+                {
+                    wallPositions.push_back(make_pair(i, j));
+                }
+            }
+        }
+
         random_device rd;
         mt19937 gen(rd());
-        uniform_int_distribution<> dis(0, positions_.size() - 1);
+        shuffle(wallPositions.begin(), wallPositions.end(), gen);
+        vector<pair<int, int>> keyPositions(wallPositions.begin(), wallPositions.begin() + 3);
 
-        for (int i = 0; i < 3; i++) 
+        vector<vector<char>> keysMap = map;
+        for (const auto& pos : keyPositions) 
         {
-            int index = dis(gen);
-            sf::Vector2f position = positions_[index];
-            positions_.erase(positions_.begin() + index);
-            shape_.push_back(sf::RectangleShape(sf::Vector2f(20.f, 20.f)));
-            shape_[i].setFillColor(sf::Color::Yellow);
-            shape_[i].setPosition(position);
+            keysMap[pos.first][pos.second] = 'K';
         }
+        return keysMap;
     }
+
     void incCollectedKeysNum() {collectedKeys += 1;}
     int getCollectedKeys() {return collectedKeys;}
-    void draw() 
+    void draw(sf::RenderWindow& window) 
     {
-        for (auto& shape : shape_) 
+        for (auto& shape : shape) 
         {
-            window_.draw(shape);
+            window.draw(shape);
         }
     }
 
 private:
-    sf::RenderWindow& window_;
-    vector<sf::Vector2f> positions_;
-    vector<sf::RectangleShape> shape_;
+    vector<vector<char>> map;
+    vector<sf::RectangleShape> shape;
     int collectedKeys;
+    sf::Texture texture;
 };
 
 
@@ -279,7 +299,7 @@ public:
 
     void removeExpiredBombs()
     {
-        bombs.erase(std::remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) {
+        bombs.erase(remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) {
             return bomb.remove();
         }), bombs.end());
     }
@@ -419,14 +439,14 @@ public:
             }
     }
 
-    void readMapFile(const std::string& filename)
+    void readMapFile(const string& filename)
     {
-        std::ifstream file(filename);
-        std::string line;
+        ifstream file(filename);
+        string line;
         int first = 1;
-        while (std::getline(file, line))
+        while (getline(file, line))
         {
-            std::vector<char> row;
+            vector<char> row;
             if(!first)
             {
                 for (char c : line)
@@ -451,18 +471,18 @@ public:
         window.draw(livesSection);
         sf::Font font;
         font.loadFromFile("assets/fonts/arial.ttf");
-        sf::Text livesText("Lives: " + std::to_string(player.getLives()), font, 20);
+        sf::Text livesText("Lives: " + to_string(player.getLives()), font, 20);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(10, 10);
         window.draw(livesText); 
 
-        // sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
-        // keysSection.setFillColor(sf::Color(128,128,128));
-        // window.draw(keysSection);
-        // sf::Text keysText("Keys: " + std::to_string(keys.getCollectedKeys()), font, 20);
-        // keysText.setFillColor(sf::Color::White);
-        // keysText.setPosition(20, 10);
-        // window.draw(keysText); 
+        sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
+        keysSection.setFillColor(sf::Color(128,128,128));
+        window.draw(keysSection);
+        sf::Text keysText("Keys: " + to_string(keys.getCollectedKeys()), font, 20);
+        keysText.setFillColor(sf::Color::White);
+        keysText.setPosition(20, 10);
+        window.draw(keysText); 
     }
 private:
 
@@ -531,10 +551,10 @@ private:
     Bomb tmpBomb;
     sf::RenderWindow window;
     Player player;
-    //Key keys;
     vector<Bomb> bombs;
     Grass grass;
     vector<vector<char>> map;
+    Key keys;
     int finished = false;
 };
 
@@ -545,37 +565,4 @@ int main()
     return 0;
 }
 
-// class Key {
-// public:
-//     Key(const std::vector<std::vector<char>>& mapData) : map(mapData) {}
 
-//     std::vector<std::vector<char>> placeKeys() {
-//         std::vector<std::pair<int, int>> wallPositions;
-
-//         // Find the positions of 'B' (walls) in the map
-//         for (int i = 0; i < map.size(); ++i) {
-//             for (int j = 0; j < map[i].size(); ++j) {
-//                 if (map[i][j] == 'B') {
-//                     wallPositions.push_back(std::make_pair(i, j));
-//                 }
-//             }
-//         }
-
-//         // Randomly select three positions to place the keys
-//         std::random_device rd;
-//         std::mt19937 gen(rd());
-//         std::shuffle(wallPositions.begin(), wallPositions.end(), gen);
-//         std::vector<std::pair<int, int>> keyPositions(wallPositions.begin(), wallPositions.begin() + 3);
-
-//         // Create a new map with keys placed at wall positions
-//         std::vector<std::vector<char>> keysMap = map;
-//         for (const auto& pos : keyPositions) {
-//             keysMap[pos.first][pos.second] = 'K';
-//         }
-
-//         return keysMap;
-//     }
-
-// private:
-//     std::vector<std::vector<char>> map;
-// };
