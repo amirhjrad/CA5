@@ -264,10 +264,22 @@ class Game
 {
 public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
-        
+    void placeKeys()
+    {
+        //keysMap
+    }
     void revealKeys()
     {
-
+        for (const auto& row : keysMap) 
+        {
+            for (const auto& cell : row) 
+            {
+                if (cell == 'K') 
+                {
+                    
+                } 
+            }
+        }
     }
     void removeCollectedKeys()
     {
@@ -282,6 +294,7 @@ public:
         int bombGridX = static_cast<int>(bombPosition.x) / 50;
         int bombGridY = static_cast<int>(bombPosition.y) / 50;
         int radius = 1; 
+        
         if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
             map[bombGridY - radius][bombGridX] = ' ';
         if (bombGridY + radius < map.size() && map[bombGridY + radius][bombGridX] == 'B')
@@ -550,6 +563,7 @@ private:
     Grass grass;
     vector<vector<char>> map;
     Key keys;
+    vector<vector<char>> keysMap;
     int finished = false;
 };
 
