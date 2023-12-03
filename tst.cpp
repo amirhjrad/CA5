@@ -64,59 +64,6 @@ private:
     float explosionTimer;
 };
 
-class Key {
-public:
-    Key() 
-    {
-        collectedKeys = 0;
-        shape.setSize(sf::Vector2f(50.0f, 50.0f));
-        loadTexture();
-    };
-    void loadTexture()
-    {
-        texture.loadFromFile("assets/key.png");
-        shape.setTexture(&texture);
-    }
-    vector<vector<char>> placeKeys(const vector<vector<char>>& mapData) 
-    {
-        vector<pair<int, int>> wallPositions;
-
-        for (int i = 0; i < mapData.size(); ++i) 
-        {
-            for (int j = 0; j < mapData[i].size(); ++j) 
-            {
-                if (mapData[i][j] == 'B') 
-                {
-                    wallPositions.push_back(make_pair(i, j));
-                }
-            }
-        }
-
-        random_device rd;
-        mt19937 gen(rd());
-        shuffle(wallPositions.begin(), wallPositions.end(), gen);
-        vector<pair<int, int>> keyPositions(wallPositions.begin(), wallPositions.begin() + 3);
-
-        vector<vector<char>> keysMap = mapData;
-        for (const auto& pos : keyPositions) 
-        {
-            keysMap[pos.first][pos.second] = 'K';
-        }
-        return keysMap;
-    }
-    void incCollectedKeysNum() {collectedKeys += 1;}
-    int getCollectedKeys() {return collectedKeys;}
-    void draw(sf::RenderWindow& window, int colIndex, int rowIndex) {window.draw(shape);}
-    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
-    sf::Vector2f getPosition() { return shape.getPosition(); }
-    
-
-private:
-    vector<vector<char>> keysMap;
-    sf::RectangleShape shape;
-    int collectedKeys;
-    sf::Texture texture;
-};
 class Player {
 public:
     Player(){
@@ -148,17 +95,6 @@ public:
           (PlayerYPos <= bombPos.y + 50 && PlayerYPos >= bombPos.y - 50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2) ||
           (PlayerYPos >= bombPos.y && PlayerYPos <= bombPos.y + 2*50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2)
           )
-            return true;
-        else return false;
-    }
-    bool playerOnKey(Key tmpKey) {
-        sf::Vector2f playerPos = shape.getPosition();
-        sf::Vector2f keyPos = tmpKey.getPosition();
-        float PlayerXPos = (playerPos.x + 50/2);
-        float PlayerYPos = (playerPos.y + 50/2);
-        cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
-        cout << "key(" << keyPos.x << "," << keyPos.y << ")" << endl;
-        if(playerPos == keyPos)
             return true;
         else return false;
     }
@@ -273,17 +209,84 @@ private:
     sf::Texture texture;
 };
 
+class Key {
+public:
+    Key() 
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        collectedKeys = 0;
+        loadTexture();
+    };
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/key.png");
+        shape.setTexture(&texture);
+    }
+    vector<vector<char>> placeKeys(const vector<vector<char>>& mapData) 
+    {
+        vector<pair<int, int>> wallPositions;
+
+        for (int i = 0; i < mapData.size(); ++i) 
+        {
+            for (int j = 0; j < mapData[i].size(); ++j) 
+            {
+                if (mapData[i][j] == 'B') 
+                {
+                    wallPositions.push_back(make_pair(i, j));
+                }
+            }
+        }
+        random_device rd;
+        mt19937 gen(rd());
+        shuffle(wallPositions.begin(), wallPositions.end(), gen);
+        vector<pair<int, int>> keyPositions(wallPositions.begin(), wallPositions.begin() + 3);
+
+        keysMap = mapData;
+        for (const auto& pos : keyPositions) 
+        {
+            keysMap[pos.first][pos.second] = 'K';
+        }
+        return keysMap;
+    }
+    void incCollectedKeysNum() {collectedKeys += 1;}
+    int getCollectedKeys() {return collectedKeys;}
+    void draw(sf::RenderWindow& window, int rowIndex, int colIndex)
+    {
+        char cell = keysMap[colIndex][rowIndex];
+        if(cell == 'K')
+        {
+            shape.setPosition(colIndex * shape.getSize().x, rowIndex * shape.getSize().y);
+            window.draw(shape);
+        }
+    }
+    
+private:
+    vector<vector<char>> keysMap;
+    sf::RectangleShape shape;
+    int collectedKeys;
+    sf::Texture texture;
+};
+
+
 class Game
 {
 public:
-    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { revealedKeys = 0; }
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { }
+    // void placeKeys()
+    // {
+    //     keysMap = keys.placeKeys(map);
+    // }
+    // void revealKeys(int row, int col)
+    // {
+    //     keys.draw(window, row, col);
+    // }
     void removeCollectedKeys()
     {
-    
+
     }
     void collectKeys()
     {
-        keys.getCollectedKeys();
+        
     }
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     {
@@ -291,12 +294,12 @@ public:
         int bombGridY = static_cast<int>(bombPosition.y) / 50;
         int radius = 1; 
         
-       if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
+        if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
         {
             if(keysMap[bombGridY - radius][bombGridX] == 'K')
             {
-                map[bombGridY - radius][bombGridX] = 'K';  
-                revealedKeys += 1;
+                map[bombGridY - radius][bombGridX] = 'K';   
+                //revealKeys(bombGridX, bombGridY - radius);
             }
             else     
                 map[bombGridY - radius][bombGridX] = ' ';
@@ -307,7 +310,7 @@ public:
             if(keysMap[bombGridY + radius][bombGridX] == 'K')
             {
                 map[bombGridY + radius][bombGridX] = 'K'; 
-                revealedKeys += 1;
+                //revealKeys(bombGridX, bombGridY + radius);
             }
           
             else
@@ -318,8 +321,8 @@ public:
         {
             if(keysMap[bombGridY][bombGridX - radius] == 'K')
             {
-                map[bombGridY][bombGridX - radius] = 'K'; 
-                revealedKeys += 1;         
+                map[bombGridY][bombGridX - radius] = 'K';   
+                //revealKeys(bombGridX - radius, bombGridY);            
             }
             else
                 map[bombGridY][bombGridX - radius] = ' ';
@@ -330,14 +333,13 @@ public:
             if(keysMap[bombGridY][bombGridX + radius] == 'K')
             {
                 map[bombGridY][bombGridX + radius] = 'K';
-                revealedKeys += 1;
+                //revealKeys(bombGridX + radius, bombGridY);
             }
 
             else
                 map[bombGridY][bombGridX + radius] = ' ';
         }
     }
-    
 
     void removeExpiredBombs()
     {
@@ -378,12 +380,6 @@ public:
                     HardObstacle obs;
                     obs.setPosition(position);
                     obs.draw(window);
-                }
-                else if(c == 'K')
-                {
-                    Key key;
-                    key.setPosition(position);
-                    key.draw(window, position.x, position.y);
                 }
             }
         }
@@ -510,8 +506,8 @@ public:
             map.push_back(row);
                 
         }
+        //keys.placeKeys(map);
         file.close();
-        keysMap = keys.placeKeys(map);
     }
 
     void drawInfoBoard() {
@@ -523,16 +519,15 @@ public:
         sf::Text livesText("Lives: " + to_string(player.getLives()), font, 20);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(10, 10);
-
-
-        sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
-        keysSection.setFillColor(sf::Color(128,128,128));
-        window.draw(keysSection);
-        sf::Text keysText("Keys: " + to_string(keys.getCollectedKeys()), font, 20);
-        keysText.setFillColor(sf::Color::White);
-        keysText.setPosition(100, 10);
         window.draw(livesText); 
-        window.draw(keysText); 
+
+        // sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
+        // keysSection.setFillColor(sf::Color(128,128,128));
+        // window.draw(keysSection);
+        // sf::Text keysText("Keys: " + to_string(keys.getCollectedKeys()), font, 20);
+        // keysText.setFillColor(sf::Color::White);
+        // keysText.setPosition(20, 10);
+        // window.draw(keysText); 
     }
 private:
 
@@ -576,21 +571,13 @@ private:
             if (bomb.remove()) {
                 player.decNumOfBombs();
                 removeSoftObstaclesAroundBomb(bomb.getPosition());
+                
                 if(player.playerOnBomb(bomb)) {
                     player.decLives();
                 }
             }
         }
         removeExpiredBombs();
-
-        for(int i = 0; i < revealedKeys; i++)
-        {
-            cout << revealedKeys << endl;
-            if(player.playerOnKey(keys))
-            {
-                collectKeys();
-            } 
-        }
     }
 
     void render()
@@ -606,14 +593,14 @@ private:
             window.display();
     }
 
-    int revealedKeys;
+
     Bomb tmpBomb;
     sf::RenderWindow window;
     Player player;
     vector<Bomb> bombs;
     Grass grass;
     vector<vector<char>> map;
-    Key keys;
+    //Key keys;
     vector<vector<char>> keysMap;
     int finished = false;
 };
@@ -626,3 +613,12 @@ int main()
 }
 
 
+    // void handleKeyReveal(int x, int y)
+    // {
+    //     if(keysMap[x][y] == 'K' && map[x][y] == ' ')
+    //     {
+    //             sf::Vector2f position(y * 50, x * 50);
+    //                 keys.setPosition(position);
+    //                 keys.draw(window, position.x, position.y);           
+    //     }
+    // }
