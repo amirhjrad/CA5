@@ -532,6 +532,7 @@ void placeKey(vector<vector<char>>& mapData)
         }
     }
 
+
     void drawInfoBoard() {
         sf::RectangleShape livesSection(sf::Vector2f(WINDOW_WIDTH, 50));
         livesSection.setFillColor(sf::Color(128,128,128));
