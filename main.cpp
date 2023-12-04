@@ -70,7 +70,8 @@ public:
     {
         shape.setSize(sf::Vector2f(50.0f, 50.0f));
         loadTexture();
-        shouldRemove = false;
+        remove = false;
+        Revealed = false;
     };
     void loadTexture()
     {
@@ -80,12 +81,15 @@ public:
     void draw(sf::RenderWindow& window) {window.draw(shape);}
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
     sf::Vector2f getPosition() { return shape.getPosition(); }
-    bool remove() {return shouldRemove; }
-
+    bool isRemovable() { return remove; }
+    void shouldRemove() { remove = true; }
+    bool isRevealed() {return Revealed;}
+    void shouldReveal() {Revealed = true;}
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
-    bool shouldRemove;
+    bool remove;
+    bool Revealed;
 };
 
 class Player {
@@ -253,29 +257,36 @@ public:
     Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { revealedKeys = 0; }
     void removeCollectedKeys()
     {
-    
+        keys.erase(remove_if(keys.begin(), keys.end(), []( Key& key) 
+        {
+            return key.isRemovable();
+        }), keys.end());    
     }
+
     void collectKeys()
     {
         player.collectKey();
     }
-void handleKeyreveal()
-{
-    int numOfKeys = 3;
-    for(int i = 0; i < numOfKeys; i++)
+
+    void handleKeyreveal()
     {
-        int x = keys[i].getPosition().x / 50;
-        int y = keys[i].getPosition().y / 50;
-        
-        if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT)
+        int numOfKeys = 3;
+        for(int i = 0; i < numOfKeys; i++)
         {
-            if(map[y][x] == ' ')
+            int x = keys[i].getPosition().x / 50;
+            int y = keys[i].getPosition().y / 50;
+            
+            if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT)
             {
-                revealedKeys += 1;
+                if(map[y][x] == ' ')
+                {
+                    revealedKeys += 1;
+                    keys[i].shouldReveal();
+                }
             }
+            
         }
     }
-}
 
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     {
@@ -350,7 +361,8 @@ void placeKey(vector<vector<char>>& mapData)
 
     void removeExpiredBombs()
     {
-        bombs.erase(remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) {
+        bombs.erase(remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) 
+        {
             return bomb.remove();
         }), bombs.end());
     }
@@ -589,15 +601,15 @@ private:
         }
         removeExpiredBombs();
         handleKeyreveal();
-
-        // for(int i = 0; i < revealedKeys; i++)
-        // {
-        //     cout << revealedKeys << endl;
-        //     if(player.playerOnKey(tmpKey))
-        //     {
-        //         collectKeys();
-        //     } 
-        // }
+        for (Key& key : keys) 
+        {
+            if(player.playerOnKey(key)) 
+            {
+                player.collectKey();
+                key.shouldRemove();
+            }
+        }
+        removeCollectedKeys();
     }
 
     void render()
@@ -608,9 +620,12 @@ private:
         for(Bomb &tmpBomb : bombs){
             tmpBomb.draw(window);
         }
-        for(int i = 0; i < revealedKeys; i++)
+        for(Key &tmpKey : keys)
         {
-            tmpKey.draw(window);
+            if(tmpKey.isRevealed())
+            {
+                tmpKey.draw(window);
+            }
         }
         drawInfoBoard();
         if(!finished)
