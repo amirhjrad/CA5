@@ -136,7 +136,7 @@ public:
         cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
         cout << "key(" << keyPos.x << "," << keyPos.y << ")" << endl;
         
-        float tolerance = 30; // Adjust the tolerance value as needed
+        float tolerance = 30;
         
         if (abs(PlayerXPos - keyPos.x) <= tolerance && abs(PlayerYPos - keyPos.y) <= tolerance)
             return true;
