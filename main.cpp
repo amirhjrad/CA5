@@ -127,16 +127,21 @@ public:
             return true;
         else return false;
     }
-    bool playerOnKey(Key tmpKey) {
+    bool playerOnKey(Key tmpKey) 
+    {
         sf::Vector2f playerPos = shape.getPosition();
         sf::Vector2f keyPos = tmpKey.getPosition();
         float PlayerXPos = (playerPos.x + 50/2);
         float PlayerYPos = (playerPos.y + 50/2);
         cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
         cout << "key(" << keyPos.x << "," << keyPos.y << ")" << endl;
-        if(playerPos == keyPos)
+        
+        float tolerance = 30; // Adjust the tolerance value as needed
+        
+        if (abs(PlayerXPos - keyPos.x) <= tolerance && abs(PlayerYPos - keyPos.y) <= tolerance)
             return true;
-        else return false;
+        else 
+            return false;
     }
 
     void move(sf::Vector2f& movement) { shape.move(movement); }
@@ -261,11 +266,6 @@ public:
         {
             return key.isRemovable();
         }), keys.end());    
-    }
-
-    void collectKeys()
-    {
-        player.collectKey();
     }
 
     void handleKeyreveal()
@@ -604,10 +604,13 @@ private:
         handleKeyreveal();
         for (Key& key : keys) 
         {
-            if(player.playerOnKey(key)) 
+            if(key.isRevealed())
             {
-                player.collectKey();
-                key.shouldRemove();
+                if(player.playerOnKey(key)) 
+                {
+                    player.collectKey();
+                    key.shouldRemove();
+                }
             }
         }
         removeCollectedKeys();
