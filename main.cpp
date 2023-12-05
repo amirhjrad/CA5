@@ -11,6 +11,7 @@ using namespace std;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const float PLAYER_SPEED = 200.0f;
+const float ENEMY_SPEED = 100.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
 
@@ -91,7 +92,6 @@ private:
     bool remove;
     bool Revealed;
 };
-
 class Player {
 public:
     Player(){
@@ -255,7 +255,38 @@ private:
     sf::RectangleShape shape;
     sf::Texture texture;
 };
+class Enemy
+{
+public:
+    Enemy()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+        int randomStartDirChance = 1;
+        // float random = static_cast<float>(rand()) / static_cast<float>(randomStartDirChance);
+        // if (isVertical){
+        //     if (random <= 0.5f) {shape.move(0.0f, -50.0f);}
+        //     else {shape.move(0.0f, 50.0f);}}
+        // else {
+        //     if (random <= 0.5f) {shape.move(-50.0f, 0.0f);}
+        //     else {shape.move(50.0f, 0.0f);}}
+    };
 
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/key2.png");
+        shape.setTexture(&texture);
+    }
+    int direction;
+    void move(sf::Vector2f& movement) { shape.move(movement); }
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+    sf::Vector2f getPosition() {return shape.getPosition();}
+    bool isVertical;
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
 class Game
 {
 public:
@@ -267,7 +298,6 @@ public:
             return key.isRemovable();
         }), keys.end());    
     }
-
     void handleKeyreveal()
     {
         int numOfKeys = 3;
@@ -369,17 +399,6 @@ void placeKey(vector<vector<char>>& mapData)
     
     void drawTexture()
     {
-        int numTilesX = window.getSize().x / 50;
-        int numTilesY = window.getSize().y / 50;
-        for (int i = 0; i < numTilesX; ++i) {
-            for (int j = 0; j < numTilesY; ++j) {
-                if (map[j][i] == ' ') {
-                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
-                    grass.draw(window);
-                }
-            }
-        }
-
         int numRows = map.size();
         int numCols = (numRows > 0) ? map[0].size() : 0;
         for (int i = 0; i < numRows; ++i)
@@ -400,8 +419,34 @@ void placeKey(vector<vector<char>>& mapData)
                     obs.setPosition(position);
                     obs.draw(window);
                 }
+                else if(c == 'V')
+                {
+                    tmpEnemy.setPosition(position);
+                    tmpEnemy.isVertical = true;
+                    enemies.push_back(tmpEnemy);
+                    map[i][j] = ' ';
+                }
+                else if(c == 'H')
+                {
+                    tmpEnemy.setPosition(position);
+                    tmpEnemy.isVertical = false;
+                    enemies.push_back(tmpEnemy);
+                    map[i][j] = ' ';
+                }
             }
         }
+        int numTilesX = window.getSize().x / 50;
+        int numTilesY = window.getSize().y / 50;
+        for (int i = 0; i < numTilesX; ++i) {
+            for (int j = 0; j < numTilesY; ++j) {
+                if (map[j][i] == ' ') {
+                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
+                    grass.draw(window);
+                }
+            }
+        }
+
+
     }
     
     void EndGame() 
@@ -416,7 +461,8 @@ void placeKey(vector<vector<char>>& mapData)
         window.display();
     }
 
-    void run() {
+    void run() 
+    {
         sf::Clock clock;
         initial();
         while (window.isOpen())
@@ -427,7 +473,19 @@ void placeKey(vector<vector<char>>& mapData)
             render();
         }
     }
-
+void handleEnemyMovement(sf::Time deltaTime)
+{
+    sf::Vector2f movement(0.0f, 0.0f);
+    for(Enemy &enemy : enemies)
+    {
+        if(enemy.isVertical)
+        {
+        }
+        else if(!enemy.isVertical)
+        {
+        }       
+    }
+}
     void handlePlayerMovement(sf::Time deltaTime)
     {
         sf::Vector2f movement(0.0f, 0.0f);
@@ -479,7 +537,7 @@ void placeKey(vector<vector<char>>& mapData)
 
         if (!obstacleCollision && windowBounds.contains(newPosition) &&
             windowBounds.contains(newPosition + sf::Vector2f(playerBounds.width, playerBounds.height)))
-        {
+        {   
             player.move(movement);
         }
     }
@@ -532,7 +590,6 @@ void placeKey(vector<vector<char>>& mapData)
         }
     }
 
-
     void drawInfoBoard() {
         sf::RectangleShape livesSection(sf::Vector2f(WINDOW_WIDTH, 50));
         livesSection.setFillColor(sf::Color(128,128,128));
@@ -542,8 +599,6 @@ void placeKey(vector<vector<char>>& mapData)
         sf::Text livesText("Lives: " + to_string(player.getLives()), font, 20);
         livesText.setFillColor(sf::Color::White);
         livesText.setPosition(10, 10);
-
-
         sf::RectangleShape keysSection(sf::Vector2f(WINDOW_WIDTH, 50));
         keysSection.setFillColor(sf::Color(128,128,128));
         window.draw(keysSection);
@@ -590,6 +645,7 @@ private:
             finished = true;
         }
         handlePlayerMovement(deltaTime);
+        handleEnemyMovement(deltaTime);
         for (Bomb& bomb : bombs) {
             bomb.update(deltaTime);
             if (bomb.remove()) {
@@ -621,7 +677,8 @@ private:
         window.clear();
         drawTexture();
         player.draw(window);
-        for(Bomb &tmpBomb : bombs){
+        for(Bomb &tmpBomb : bombs)
+        {
             tmpBomb.draw(window);
         }
         for(Key &tmpKey : keys)
@@ -630,6 +687,10 @@ private:
             {
                 tmpKey.draw(window);
             }
+        }
+        for(Enemy &tmpEnemy : enemies)
+        {
+            tmpEnemy.draw(window);
         }
         drawInfoBoard();
         if(!finished)
@@ -647,6 +708,9 @@ private:
     vector<Key> keys;
     vector<vector<char>> keysMap;
     int finished = false;
+    Enemy tmpEnemy;
+    vector<Enemy> enemies;
+    sf::Time timer;
 };
 
 int main()
