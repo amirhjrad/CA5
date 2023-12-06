@@ -263,13 +263,13 @@ public:
         shape.setSize(sf::Vector2f(50.0f, 50.0f));
         loadTexture();
         int randomStartDirChance = 1;
-        // float random = static_cast<float>(rand()) / static_cast<float>(randomStartDirChance);
-        // if (isVertical){
-        //     if (random <= 0.5f) {shape.move(0.0f, -50.0f);}
-        //     else {shape.move(0.0f, 50.0f);}}
-        // else {
-        //     if (random <= 0.5f) {shape.move(-50.0f, 0.0f);}
-        //     else {shape.move(50.0f, 0.0f);}}
+        float random = static_cast<float>(rand()) / static_cast<float>(randomStartDirChance);
+        if (isVertical){
+            if (random <= 0.5f) {upOrRight = true;}
+            else {shape.move(0.0f, 50.0f);}}
+        else {
+            if (random <= 0.5f) {upOrRight = false;}
+            else {shape.move(50.0f, 0.0f);}}
     };
 
     void loadTexture()
@@ -282,7 +282,9 @@ public:
     void draw(sf::RenderWindow& window) { window.draw(shape); }
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
     sf::Vector2f getPosition() {return shape.getPosition();}
+    sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
     bool isVertical;
+    bool upOrRight;
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
@@ -475,15 +477,73 @@ void placeKey(vector<vector<char>>& mapData)
     }
 void handleEnemyMovement(sf::Time deltaTime)
 {
-    sf::Vector2f movement(0.0f, 0.0f);
     for(Enemy &enemy : enemies)
     {
-        if(enemy.isVertical)
+        obstacleCollision = false;
+        sf::Vector2f movement(0.0f, 0.0f);
+        if(!obstacleCollision)
         {
+            if (enemy.upOrRight)
+            {
+                if(enemy.isVertical)
+                    movement.y -= ENEMY_SPEED * deltaTime.asSeconds();
+                else
+                    movement.x += ENEMY_SPEED * deltaTime.asSeconds();
+            }
+            else
+            {
+                if(enemy.isVertical)
+                    movement.y += ENEMY_SPEED * deltaTime.asSeconds();
+                else
+                    movement.x -= ENEMY_SPEED * deltaTime.asSeconds();               
+            }
         }
-        else if(!enemy.isVertical)
+        else
         {
-        }       
+            if (enemy.upOrRight)
+            {
+                if(enemy.isVertical)
+                    movement.y += ENEMY_SPEED * deltaTime.asSeconds();
+                else
+                    movement.x -= ENEMY_SPEED * deltaTime.asSeconds();
+            }
+            else
+            {
+                if(enemy.isVertical)
+                    movement.y -= ENEMY_SPEED * deltaTime.asSeconds();
+                else
+                    movement.x += ENEMY_SPEED * deltaTime.asSeconds();               
+            }            
+        }
+        
+        sf::Vector2f newPosition = enemy.getPosition() + movement;
+        sf::FloatRect enemyBounds = enemy.getBounds();
+        sf::FloatRect windowBounds(0.0f, 50.0f - 6, WINDOW_WIDTH, WINDOW_HEIGHT - 50.0f - 6);
+        sf::FloatRect newBounds(newPosition, sf::Vector2f(enemyBounds.width, enemyBounds.height));
+        
+        for (int i = 0; i < map.size(); ++i)
+        {
+            for (int j = 0; j < map[i].size(); ++j)
+            {
+                char c = map[i][j];
+                sf::Vector2f obstaclePosition(j * 50, i * 50);
+                sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(40.0f, 40.0f));
+                
+                if (c == 'B' || c == 'P')
+                {
+                    if (newBounds.intersects(obstacleBounds))
+                    {
+                        obstacleCollision = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (obstacleCollision)
+                break;
+        }
+        
+        enemy.move(newPosition);
     }
 }
     void handlePlayerMovement(sf::Time deltaTime)
@@ -511,10 +571,10 @@ void handleEnemyMovement(sf::Time deltaTime)
         }
 
         sf::Vector2f newPosition = player.getPosition() + movement;
-        sf::FloatRect playerBounds = player.getBounds();
+        sf::FloatRect enemyBounds = player.getBounds();
         sf::FloatRect windowBounds(0.0f, 50.0f - 6, WINDOW_WIDTH, WINDOW_HEIGHT - 50.0f - 6);
 
-        sf::FloatRect newBounds(newPosition, sf::Vector2f(playerBounds.width, playerBounds.height));
+        sf::FloatRect newBounds(newPosition, sf::Vector2f(enemyBounds.width, enemyBounds.height));
         bool obstacleCollision = false;
         for (int i = 0; i < map.size(); ++i)
         {
@@ -536,7 +596,7 @@ void handleEnemyMovement(sf::Time deltaTime)
         }
 
         if (!obstacleCollision && windowBounds.contains(newPosition) &&
-            windowBounds.contains(newPosition + sf::Vector2f(playerBounds.width, playerBounds.height)))
+            windowBounds.contains(newPosition + sf::Vector2f(enemyBounds.width, enemyBounds.height)))
         {   
             player.move(movement);
         }
@@ -711,6 +771,7 @@ private:
     Enemy tmpEnemy;
     vector<Enemy> enemies;
     sf::Time timer;
+    bool obstacleCollision;
 };
 
 int main()
