@@ -823,5 +823,55 @@ int main()
 }
 
 
+// void moveEnemy(Enemy& enemy, std::vector<std::vector<char>>& map, sf::RenderWindow& window)
+// {
+//     const float ENEMY_SPEED = 5.0f;
+//     sf::Vector2f movement(0.0f, 0.0f);
+
+//     if (enemy.isVertical) {
+//         if (enemy.upOrRight) {
+//             movement.y -= ENEMY_SPEED;
+//         }
+//         else {
+//             movement.y += ENEMY_SPEED;
+//         }
+//     }
+//     else {
+//         if (enemy.upOrRight) {
+//             movement.x += ENEMY_SPEED;
+//         }
+//         else {
+//             movement.x -= ENEMY_SPEED;
+//         }
+//     }
+
+//     // Check for collision with obstacles
+//     sf::FloatRect enemyBounds = enemy.getBounds();
+//     int x = static_cast<int>(enemyBounds.left / 50);
+//     int y = static_cast<int>(enemyBounds.top / 50);
+
+//     if (x < 0 || x >= map[0].size() || y < 0 || y >= map.size()) {
+//         // Enemy is out of bounds
+//         return;
+//     }
+
+//     if (map[y][x] == 'B') {
+//         if (enemy.isVertical) {
+//             enemy.upOrRight = !enemy.upOrRight;
+//         }
+//         else {
+//             enemy.upOrRight = !enemy.upOrRight;
+//         }
+//     }
+
+//     enemy.move(movement);
+
+//     // Check if enemy is out of bounds
+//     sf::Vector2f enemyPos = enemy.getPosition();
+//     if (enemyPos.x < 0 || enemyPos.x > window.getSize().x || enemyPos.y < 0 || enemyPos.y > window.getSize().y) {
+//         // Enemy is out of bounds
+//         return;
+//     }
+// }
 
 
