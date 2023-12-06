@@ -475,7 +475,7 @@ void placeKey(vector<vector<char>>& mapData)
             render();
         }
     }
-void handleEnemyMovement(Enemy& enemy, std::vector<std::vector<char>>& map, sf::RenderWindow& window)
+void handleEnemyMovement(Enemy& enemy)
 {
     const float ENEMY_SPEED = 5.0f;
     sf::Vector2f movement(0.0f, 0.0f);
@@ -497,115 +497,43 @@ void handleEnemyMovement(Enemy& enemy, std::vector<std::vector<char>>& map, sf::
         }
     }
 
-    // Check for collision with obstacles
     sf::FloatRect enemyBounds = enemy.getBounds();
-    int x = static_cast<int>(enemyBounds.left / 50);
-    int y = static_cast<int>(enemyBounds.top / 50);
+    int x = static_cast<int>((enemyBounds.left)/ 50);
+    int y = static_cast<int>((enemyBounds.top) / 50);
 
-    if (x < 0 || x >= map[0].size() || y < 0 || y >= map.size()) {
-        // Enemy is out of bounds
+    if (x < 1 || x + 1 >= map[0].size()|| y < 1 || y + 1 >= map.size()) {
+        enemy.upOrRight = !enemy.upOrRight;
+        movement = -movement;
+        enemy.move(movement);
         return;
     }
 
-    if (map[y][x] == 'B') {
-        if (enemy.isVertical) {
-            enemy.upOrRight = !enemy.upOrRight;
-            movement.y = -movement.y;
-        }
-        else {
+    if (y >= map[x].size() || x >= map[y].size()) 
+    {
+        return;
+    }
+
+    if (map[y + 1][x] == 'B' || map[y + 1][x] == 'P') 
+    {
+            if (enemy.isVertical) 
+            {
+                enemy.upOrRight = !enemy.upOrRight;
+                movement.y = -movement.y;
+            }
+    }
+    if(map[y][x + 1] == 'B' || map[y][x + 1] == 'P')
+    {
+        if(!enemy.isVertical)
+        {
             enemy.upOrRight = !enemy.upOrRight;
             movement.x = -movement.x;
         }
     }
-
     enemy.move(movement);
-
-    // Check if enemy is out of bounds
-    sf::Vector2f enemyPos = enemy.getPosition();
-    if (enemyPos.x < 0 || enemyPos.x > window.getSize().x || enemyPos.y < 0 || enemyPos.y > window.getSize().y) {
-        // Enemy is out of bounds
-        if (enemy.isVertical) {
-            enemy.upOrRight = !enemy.upOrRight;
-            movement.y = -movement.y;
-        }
-        else {
-            enemy.upOrRight = !enemy.upOrRight;
-            movement.x = -movement.x;
-        }
-        enemy.move(movement);
-    }
 }
 
-// void handleEnemyMovement(sf::Time deltaTime)
-// {
-//     for(Enemy &enemy : enemies)
-//     {
-//         obstacleCollision = false;
-//         sf::Vector2f movement(0.0f, 0.0f);
-//         if(!obstacleCollision)
-//         {
-//             if (enemy.upOrRight)
-//             {
-//                 if(enemy.isVertical)
-//                     movement.y -= ENEMY_SPEED * deltaTime.asSeconds();
-//                 else
-//                     movement.x += ENEMY_SPEED * deltaTime.asSeconds();
-//             }
-//             else
-//             {
-//                 if(enemy.isVertical)
-//                     movement.y += ENEMY_SPEED * deltaTime.asSeconds();
-//                 else
-//                     movement.x -= ENEMY_SPEED * deltaTime.asSeconds();               
-//             }
-//         }
-//         else
-//         {
-//             if (enemy.upOrRight)
-//             {
-//                 if(enemy.isVertical)
-//                     movement.y += ENEMY_SPEED * deltaTime.asSeconds();
-//                 else
-//                     movement.x -= ENEMY_SPEED * deltaTime.asSeconds();
-//             }
-//             else
-//             {
-//                 if(enemy.isVertical)
-//                     movement.y -= ENEMY_SPEED * deltaTime.asSeconds();
-//                 else
-//                     movement.x += ENEMY_SPEED * deltaTime.asSeconds();               
-//             }            
-//         }
-        
-//         sf::Vector2f newPosition = enemy.getPosition() + movement;
-//         sf::FloatRect enemyBounds = enemy.getBounds();
-//         sf::FloatRect windowBounds(0.0f, 50.0f - 6, WINDOW_WIDTH, WINDOW_HEIGHT - 50.0f - 6);
-//         sf::FloatRect newBounds(newPosition, sf::Vector2f(enemyBounds.width, enemyBounds.height));   
-//         for (int i = 0; i < map.size(); ++i)
-//         {
-//             for (int j = 0; j < map[i].size(); ++j)
-//             {
-//                 char c = map[i][j];
-//                 sf::Vector2f obstaclePosition(j * 50, i * 50);
-//                 sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(40.0f, 40.0f));
-                
-//                 if (c == 'B' || c == 'P')
-//                 {
-//                     if (newBounds.intersects(obstacleBounds))
-//                     {
-//                         obstacleCollision = true;
-//                         break;
-//                     }
-//                 }
-//             }
-            
-//             if (obstacleCollision)
-//                 break;
-//         }
-        
-//         enemy.move(newPosition);
-//     }
-// }
+
+
     void handlePlayerMovement(sf::Time deltaTime)
     {
         sf::Vector2f movement(0.0f, 0.0f);
