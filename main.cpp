@@ -475,7 +475,7 @@ void placeKey(vector<vector<char>>& mapData)
             render();
         }
     }
-void handleEnemyMovement(Enemy& enemy)
+void handleEnemyMovement(Enemy& enemy, std::vector<std::vector<char>>& map, sf::RenderWindow& window)
 {
     const float ENEMY_SPEED = 5.0f;
     sf::Vector2f movement(0.0f, 0.0f);
@@ -510,9 +510,11 @@ void handleEnemyMovement(Enemy& enemy)
     if (map[y][x] == 'B') {
         if (enemy.isVertical) {
             enemy.upOrRight = !enemy.upOrRight;
+            movement.y = -movement.y;
         }
         else {
             enemy.upOrRight = !enemy.upOrRight;
+            movement.x = -movement.x;
         }
     }
 
@@ -522,7 +524,15 @@ void handleEnemyMovement(Enemy& enemy)
     sf::Vector2f enemyPos = enemy.getPosition();
     if (enemyPos.x < 0 || enemyPos.x > window.getSize().x || enemyPos.y < 0 || enemyPos.y > window.getSize().y) {
         // Enemy is out of bounds
-        return;
+        if (enemy.isVertical) {
+            enemy.upOrRight = !enemy.upOrRight;
+            movement.y = -movement.y;
+        }
+        else {
+            enemy.upOrRight = !enemy.upOrRight;
+            movement.x = -movement.x;
+        }
+        enemy.move(movement);
     }
 }
 
