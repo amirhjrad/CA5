@@ -6,6 +6,7 @@
 #include <random>
 #include <algorithm>
 #include <SFML/System.hpp>
+#include<chrono>
 
 using namespace std;
 
@@ -681,6 +682,7 @@ void handleEnemyMovement(Enemy& enemy)
                 for (int j=0 ; j< WINDOW_WIDTH/50; j++)
                     row.push_back('.');
                 first = 0;
+                gameTimer = stoi(line);
             }
             map.push_back(row);
                 
@@ -709,11 +711,23 @@ void handleEnemyMovement(Enemy& enemy)
         keysText.setPosition(100, 10);
         window.draw(livesText); 
         window.draw(keysText); 
+        std::chrono::duration<double> countDownDuration(gameTimer); 
+        std::chrono::duration<double> elapsedTime = std::chrono::system_clock::now() - startTime;
+        std::chrono::duration<double> remainingTime = countDownDuration - elapsedTime;
+        if(remainingTime.count() > 0){
+            int remainingSeconds = static_cast<int>(remainingTime.count());
+            sf::Text countdownText("Timer: " + std::to_string(remainingSeconds), font, 20);
+            countdownText.setFillColor(sf::Color::White);
+            countdownText.setPosition(200, 10);
+            window.draw(countdownText);
+        }
+        else gameTimer = -1;
     }
 private:
 
     void initial()
     {
+        startTime = std::chrono::system_clock::now();
         readMapFile("map.txt");
     }
 
@@ -741,7 +755,8 @@ private:
 
     void update(sf::Time deltaTime)
     {
-        if(player.getLives() <= 0)
+        cout << gameTimer <<endl;
+        if(player.getLives() <= 0 || gameTimer == -1)
         {
             EndGame();
             finished = true;
@@ -835,6 +850,8 @@ private:
             window.display();
     }
 
+    std::chrono::time_point<std::chrono::system_clock> startTime;
+    int gameTimer;
     int revealedKeys;
     Bomb tmpBomb;
     sf::RenderWindow window;
