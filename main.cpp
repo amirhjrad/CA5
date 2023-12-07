@@ -310,7 +310,24 @@ private:
     sf::RectangleShape shape;
     sf::Texture texture;
 };
+class PowerUp
+{
+public:
+    PowerUp()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+    };
 
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/grass.png");
+        shape.setTexture(&texture);
+    }
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;   
+};
 class Game
 {
 public:
@@ -321,6 +338,10 @@ public:
         {
             return key.isRemovable();
         }), keys.end());    
+    }
+    void lifePowerUp()
+    {
+
     }
     void handleKeyreveal()
     {
@@ -741,7 +762,7 @@ private:
         if(enemy.recentlyHitPlayer)
         {
             cout << " recently hit an enemy " << lastTimeCalled;
-            if(lastTimeCalled <= 3)
+            if(lastTimeCalled <= 10)
             {
                 cout << "last time " << lastTimeCalled  << endl;
                 continue;
