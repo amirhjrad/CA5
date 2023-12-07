@@ -499,9 +499,19 @@ public:
         window.clear();
         sf::Font font;
         font.loadFromFile("assets/fonts/arial.ttf");
-        sf::Text message("You have lost", font, 24);
+        sf::Text message;
+        if(gameTimer == -1){
+            message.setString("Time is finished");
+            message.setFont(font);
+            message.setCharacterSize(24);
+        }
+        else {
+            message.setString("Lifes is finished");
+            message.setFont(font);
+            message.setCharacterSize(24);
+        }
         message.setFillColor(sf::Color::White);
-        message.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+        message.setPosition(WINDOW_WIDTH/2.5, WINDOW_HEIGHT/2.5);
         window.draw(message);
         window.display();
     }
