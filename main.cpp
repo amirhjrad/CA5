@@ -116,8 +116,8 @@ public:
         sf::Vector2f bombPos = tmpBomb.getPosition();
         float PlayerXPos = (playerPos.x + 50/2);
         float PlayerYPos = (playerPos.y + 50/2);
-        cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
-        cout << "bomb(" << bombPos.x << "," << bombPos.y << ")" << endl;
+        //cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
+        //cout << "bomb(" << bombPos.x << "," << bombPos.y << ")" << endl;
         if(playerPos == bombPos || 
           (PlayerXPos > bombPos.x && PlayerXPos <= (bombPos.x + 2*50.0) && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
           (PlayerXPos < bombPos.x && playerPos.x >= bombPos.x - 2*50.0 && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
@@ -133,8 +133,8 @@ public:
         sf::Vector2f keyPos = tmpKey.getPosition();
         float PlayerXPos = (playerPos.x + 50/2);
         float PlayerYPos = (playerPos.y + 50/2);
-        cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
-        cout << "key(" << keyPos.x << "," << keyPos.y << ")" << endl;
+        //cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
+        //cout << "key(" << keyPos.x << "," << keyPos.y << ")" << endl;
         
         float tolerance = 30;
         
@@ -358,7 +358,7 @@ void placeKey(vector<vector<char>>& mapData)
             if (mapData[i][j] == 'B') 
             {
                 wallPositions.push_back(make_pair(i, j));
-                cout << "wall position: " << i << "," << j << endl;
+                //cout << "wall position: " << i << "," << j << endl;
             }
         }
     }
@@ -374,7 +374,7 @@ void placeKey(vector<vector<char>>& mapData)
     if (keys.size() == 0)
     {
         keys.push_back(tmpKey);
-        cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;
+        //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;
     }
     else
     {
@@ -386,7 +386,7 @@ void placeKey(vector<vector<char>>& mapData)
             }
         }
         keys.push_back(tmpKey);       
-        cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;            
+        //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;            
     }
 }
 
@@ -500,20 +500,18 @@ void handleEnemyMovement(Enemy& enemy)
     sf::FloatRect enemyBounds = enemy.getBounds();
     int x = static_cast<int>((enemyBounds.left)/ 50);
     int y = static_cast<int>((enemyBounds.top) / 50);
-
-    if (x < 1 || x + 1 >= map[0].size()|| y < 1 || y + 1 >= map.size()) {
+    cout << "(" << x << " , " << y << ") "; 
+    if (x < 1 || x + 1 > map[0].size()|| y < 1 || y + 1 >= map.size()) 
+    {
+        cout << " x: " << x << " y: " << y << " map[0].size(): " << map[0].size() << " map.size(): " << map.size();
         enemy.upOrRight = !enemy.upOrRight;
         movement = -movement;
         enemy.move(movement);
+        cout << endl;
         return;
     }
 
-    if (y >= map[x].size() || x >= map[y].size()) 
-    {
-        return;
-    }
-
-    if (map[y + 1][x] == 'B' || map[y + 1][x] == 'P') 
+    else if (map[y + 1][x] == 'B' || map[y + 1][x] == 'P') 
     {
             if (enemy.isVertical) 
             {
@@ -521,7 +519,21 @@ void handleEnemyMovement(Enemy& enemy)
                 movement.y = -movement.y;
             }
     }
-    if(map[y][x + 1] == 'B' || map[y][x + 1] == 'P')
+
+    else if(map[y][x] == 'B' || map[y][x] == 'P')
+    {
+            if (enemy.isVertical) 
+            {
+                enemy.upOrRight = !enemy.upOrRight;
+                movement.y = -movement.y;
+            } 
+            else
+            {
+                enemy.upOrRight = !enemy.upOrRight;
+                movement.x = -movement.x;                
+            }      
+    }
+    else if(map[y][x + 1] == 'B' || map[y][x + 1] == 'P')
     {
         if(!enemy.isVertical)
         {
@@ -529,10 +541,9 @@ void handleEnemyMovement(Enemy& enemy)
             movement.x = -movement.x;
         }
     }
+    cout << "movement (" << movement.x << " , " << movement.y << endl;
     enemy.move(movement);
 }
-
-
 
     void handlePlayerMovement(sf::Time deltaTime)
     {
@@ -693,9 +704,12 @@ private:
             finished = true;
         }
         handlePlayerMovement(deltaTime);
+        int tmp = 0;
         for(Enemy &enemy : enemies)
         {
+            cout << tmp << " :  ";
             handleEnemyMovement(enemy);
+            tmp++;
         }
         for (Bomb& bomb : bombs) {
             bomb.update(deltaTime);
