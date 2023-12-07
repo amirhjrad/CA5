@@ -5,6 +5,7 @@
 #include <math.h>
 #include <random>
 #include <algorithm>
+#include <SFML/System.hpp>
 
 using namespace std;
 
@@ -14,7 +15,6 @@ const float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 100.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
-
 
 class Bomb {
 public:
@@ -92,6 +92,43 @@ private:
     bool remove;
     bool Revealed;
 };
+class Enemy
+{
+public:
+    Enemy()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+        int randomStartDirChance = 1;
+        float random = static_cast<float>(rand()) / static_cast<float>(randomStartDirChance);
+        if (isVertical){
+            if (random <= 0.5f) {upOrRight = true;}
+            else {shape.move(0.0f, 50.0f);}}
+        else {
+            if (random <= 0.5f) {upOrRight = false;}
+            else {shape.move(50.0f, 0.0f);}}
+        recentlyHitPlayer = false;
+    };
+
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/key2.png");
+        shape.setTexture(&texture);
+    }
+    int direction;
+    void move(sf::Vector2f& movement) { shape.move(movement); }
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+    sf::Vector2f getPosition() {return shape.getPosition();}
+    sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
+    bool isVertical;
+    bool upOrRight;
+    bool recentlyHitPlayer;
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
+
 class Player {
 public:
     Player(){
@@ -143,6 +180,24 @@ public:
         else 
             return false;
     }
+
+bool playerOnEnemy(Enemy tmpEnemy)
+{
+    sf::Vector2f playerPos = shape.getPosition();
+    sf::Vector2f enemyPos = tmpEnemy.getPosition();
+    float PlayerXPos = playerPos.x; 
+    float PlayerYPos = playerPos.y; 
+    cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
+    cout << "enemy(" << enemyPos.x  << "," << enemyPos.y  << ")" << endl;
+    
+    float tolerance = 25;
+    
+    if (abs(PlayerXPos - enemyPos.x) <= tolerance && abs(PlayerYPos - enemyPos.y) <= tolerance)
+        return true;
+    else 
+        return false;        
+}
+
 
     void move(sf::Vector2f& movement) { shape.move(movement); }
 
@@ -255,40 +310,7 @@ private:
     sf::RectangleShape shape;
     sf::Texture texture;
 };
-class Enemy
-{
-public:
-    Enemy()
-    {
-        shape.setSize(sf::Vector2f(50.0f, 50.0f));
-        loadTexture();
-        int randomStartDirChance = 1;
-        float random = static_cast<float>(rand()) / static_cast<float>(randomStartDirChance);
-        if (isVertical){
-            if (random <= 0.5f) {upOrRight = true;}
-            else {shape.move(0.0f, 50.0f);}}
-        else {
-            if (random <= 0.5f) {upOrRight = false;}
-            else {shape.move(50.0f, 0.0f);}}
-    };
 
-    void loadTexture()
-    {
-        texture.loadFromFile("assets/key2.png");
-        shape.setTexture(&texture);
-    }
-    int direction;
-    void move(sf::Vector2f& movement) { shape.move(movement); }
-    void draw(sf::RenderWindow& window) { window.draw(shape); }
-    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
-    sf::Vector2f getPosition() {return shape.getPosition();}
-    sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
-    bool isVertical;
-    bool upOrRight;
-private:
-    sf::RectangleShape shape;
-    sf::Texture texture;
-};
 class Game
 {
 public:
@@ -347,49 +369,48 @@ public:
         }
     }
     
-void placeKey(vector<vector<char>>& mapData)
-{
-    vector<pair<int, int>> wallPositions;
-
-    for (int i = 0; i < mapData.size(); ++i) 
+    void placeKey(vector<vector<char>>& mapData)
     {
-        for (int j = 0; j < mapData[i].size(); ++j) 
+        vector<pair<int, int>> wallPositions;
+
+        for (int i = 0; i < mapData.size(); ++i) 
         {
-            if (mapData[i][j] == 'B') 
+            for (int j = 0; j < mapData[i].size(); ++j) 
             {
-                wallPositions.push_back(make_pair(i, j));
-                //cout << "wall position: " << i << "," << j << endl;
+                if (mapData[i][j] == 'B') 
+                {
+                    wallPositions.push_back(make_pair(i, j));
+                    //cout << "wall position: " << i << "," << j << endl;
+                }
             }
         }
-    }
-    random_device rd;
-    mt19937 gen(rd());
-    shuffle(wallPositions.begin(), wallPositions.end(), gen);
-    uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
-    int randomIndex = dist(gen);
-    pair<int, int> keyPosition = wallPositions[randomIndex];
-    sf::Vector2f playerPosition = player.getPosition();
-    sf::Vector2f keyPositionSF(keyPosition.second * 50, keyPosition.first * 50);
-    tmpKey.setPosition(keyPositionSF);
-    if (keys.size() == 0)
-    {
-        keys.push_back(tmpKey);
-        //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;
-    }
-    else
-    {
-        for(int i = 0; i < keys.size(); i++)
+        random_device rd;
+        mt19937 gen(rd());
+        shuffle(wallPositions.begin(), wallPositions.end(), gen);
+        uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
+        int randomIndex = dist(gen);
+        pair<int, int> keyPosition = wallPositions[randomIndex];
+        sf::Vector2f playerPosition = player.getPosition();
+        sf::Vector2f keyPositionSF(keyPosition.second * 50, keyPosition.first * 50);
+        tmpKey.setPosition(keyPositionSF);
+        if (keys.size() == 0)
         {
-            if(keys[i].getPosition() == tmpKey.getPosition())
-            {
-                placeKey(mapData);
-            }
+            keys.push_back(tmpKey);
+            //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;
         }
-        keys.push_back(tmpKey);       
-        //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;            
+        else
+        {
+            for(int i = 0; i < keys.size(); i++)
+            {
+                if(keys[i].getPosition() == tmpKey.getPosition())
+                {
+                    placeKey(mapData);
+                }
+            }
+            keys.push_back(tmpKey);       
+            //cout << "( " << tmpKey.getPosition().x << "," << tmpKey.getPosition().y << ")" << endl;            
+        }
     }
-}
-
 
     void removeExpiredBombs()
     {
@@ -500,14 +521,14 @@ void handleEnemyMovement(Enemy& enemy)
     sf::FloatRect enemyBounds = enemy.getBounds();
     int x = static_cast<int>((enemyBounds.left)/ 50);
     int y = static_cast<int>((enemyBounds.top) / 50);
-    cout << "(" << x << " , " << y << ") "; 
+    cout << "(" << x << " , " << y << ") " << endl; 
     if (x < 1 || x + 1 > map[0].size()|| y < 1 || y + 1 >= map.size()) 
     {
-        cout << " x: " << x << " y: " << y << " map[0].size(): " << map[0].size() << " map.size(): " << map.size();
+        //cout << " x: " << x << " y: " << y << " map[0].size(): " << map[0].size() << " map.size(): " << map.size();
         enemy.upOrRight = !enemy.upOrRight;
         movement = -movement;
         enemy.move(movement);
-        cout << endl;
+        //cout << endl;
         return;
     }
 
@@ -541,8 +562,9 @@ void handleEnemyMovement(Enemy& enemy)
             movement.x = -movement.x;
         }
     }
-    cout << "movement (" << movement.x << " , " << movement.y << endl;
+    //cout << "movement (" << movement.x << " , " << movement.y << endl;
     enemy.move(movement);
+
 }
 
     void handlePlayerMovement(sf::Time deltaTime)
@@ -711,6 +733,35 @@ private:
             handleEnemyMovement(enemy);
             tmp++;
         }
+        float lastTimeCalled;
+    for(Enemy& enemy : enemies)
+    {
+        cout << "lives: " << player.getLives();
+        if(enemy.recentlyHitPlayer)
+        {
+            enemy.recentlyHitPlayer = false; 
+            cout << " recently hit an enemy " << lastTimeCalled;
+            if(lastTimeCalled <= 1)
+            {
+                cout << "last time " << lastTimeCalled  << endl;
+                break;
+            }
+        }
+        else
+        {
+            cout << "not hit an enemy recently ";
+            if(player.playerOnEnemy(enemy))
+            {
+                cout << "player on an enemy ";
+                enemy.recentlyHitPlayer = true;
+                timePassed = clock.restart();
+                lastTimeCalled = timePassed.asSeconds();
+                player.decLives(); 
+            }
+        }
+        cout << endl;
+    }
+
         for (Bomb& bomb : bombs) {
             bomb.update(deltaTime);
             if (bomb.remove()) {
@@ -777,6 +828,8 @@ private:
     vector<Enemy> enemies;
     sf::Time timer;
     bool obstacleCollision;
+    sf::Clock clock;
+    sf::Time timePassed;
 };
 
 int main()
