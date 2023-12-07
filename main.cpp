@@ -190,7 +190,7 @@ bool playerOnEnemy(Enemy tmpEnemy)
     cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
     cout << "enemy(" << enemyPos.x  << "," << enemyPos.y  << ")" << endl;
     
-    float tolerance = 25;
+    float tolerance = 15;
     
     if (abs(PlayerXPos - enemyPos.x) <= tolerance && abs(PlayerYPos - enemyPos.y) <= tolerance)
         return true;
@@ -733,19 +733,21 @@ private:
             handleEnemyMovement(enemy);
             tmp++;
         }
-        float lastTimeCalled;
+        float lastTimeCalled = 0;
     for(Enemy& enemy : enemies)
     {
         cout << "lives: " << player.getLives();
+        lastTimeCalled = timePassed.asSeconds();
         if(enemy.recentlyHitPlayer)
         {
-            enemy.recentlyHitPlayer = false; 
             cout << " recently hit an enemy " << lastTimeCalled;
-            if(lastTimeCalled <= 1)
+            if(lastTimeCalled <= 3)
             {
                 cout << "last time " << lastTimeCalled  << endl;
-                break;
+                continue;
             }
+            else
+                enemy.recentlyHitPlayer = false; 
         }
         else
         {
@@ -755,7 +757,6 @@ private:
                 cout << "player on an enemy ";
                 enemy.recentlyHitPlayer = true;
                 timePassed = clock.restart();
-                lastTimeCalled = timePassed.asSeconds();
                 player.decLives(); 
             }
         }

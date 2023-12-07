@@ -16,6 +16,7 @@
         "numeric": "cpp",
         "streambuf": "cpp",
         "tuple": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "iostream": "cpp"
     }
 }
