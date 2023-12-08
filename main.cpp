@@ -12,7 +12,7 @@ using namespace std;
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-float PLAYER_SPEED = 200.0f;
+ float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 5.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
@@ -236,7 +236,7 @@ public:
         float PlayerXPos = (playerPos.x + 50/2);
         float PlayerYPos = (playerPos.y + 50/2);;
         
-        float tolerance = 30;
+        float tolerance = 15;
         
         if (abs(PlayerXPos - doorPos.x) <= tolerance && abs(PlayerYPos - doorPos.y) <= tolerance && numOfCollectedKeys == 3)
             return true;
@@ -710,17 +710,19 @@ public:
                     enemies.push_back(tmpEnemy);
                     map[i][j] = ' ';
                 }
-
-            }
-        }
-        numTilesX = window.getSize().x / 50;
-        numTilesY = window.getSize().y / 50;
-        for (int i = 0; i < numTilesX; ++i) {
-            for (int j = 0; j < numTilesY; ++j) {
-                if (map[j][i] == ' ') {
-                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
-                    grass.draw(window);
+                else if(c == 'D')
+                {
+                    SoftObstacle obs;
+                    obs.setPosition(position);
+                    obs.draw(window);
+                    door.setPosition(position);
                 }
+                else if(c == 'd')
+                {
+                    door.setPosition(position);
+                    door.draw(window);
+                }
+
             }
         }
     }
@@ -1014,8 +1016,11 @@ private:
     }
     void update(sf::Time deltaTime)
     {
-        //cout << gameTimer <<endl;
-        if(player.getLives() <= 0 || gameTimer == -1)
+        if(player.playerOnDoor(door)){
+            finished = true;
+            Win();
+        }
+        else if(player.getLives() <= 0 || gameTimer == -1)
         {
             EndGame();
             finished = true;
@@ -1104,10 +1109,6 @@ private:
                 }
             }
         }
-        if(player.playerOnDoor(door)){
-            finished = true;
-            Win();
-        }
         removeCollectedKeys();
     }
 
@@ -1177,3 +1178,8 @@ int main()
     game.run();
     return 0;
 }
+
+
+
+
+
