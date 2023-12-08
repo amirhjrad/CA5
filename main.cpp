@@ -16,7 +16,24 @@ float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 100.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
+// class Door
+// {
+// public:
+//     Door()
+//     {
+//         shape.setSize(sf::Vector2f(50.0f, 50.0f));
+//         loadTexture();   
+         
+//     }
+//     void loadTexture()
+//     {
+//         texture.loadFromFile("assets/life.png");
+//         //texture2.loadFromFile("");
+//         shape.setTexture(&texture);
+//     }
+// private:
 
+// };
 class PowerUp
 {
 public:
@@ -393,11 +410,11 @@ public:
     }
     void removePU()
     {
-        PUs.erase(remove_if(PUs.begin(), PUs.end(), []( PowerUp& PU) 
-        {
+        PUs.erase(std::remove_if(PUs.begin(), PUs.end(), [](PowerUp& PU) {
             return PU.isRemovable();
-        }), PUs.end());    
+        }), PUs.end());
     }
+
     void removeEnemy()
     {
         enemies.erase(remove_if(enemies.begin(), enemies.end(), []( Enemy& enemy) 
@@ -640,6 +657,13 @@ public:
                     enemies.push_back(tmpEnemy);
                     map[i][j] = ' ';
                 }
+                else if(c == 'D')
+                {
+                    tmpEnemy.setPosition(position);
+                    tmpEnemy.isVertical = false;
+                    enemies.push_back(tmpEnemy);
+                    map[i][j] = ' ';
+                }
             }
         }
         int numTilesX = window.getSize().x / 50;
@@ -870,12 +894,12 @@ void handleEnemyMovement(Enemy& enemy)
             // tmpPU.getPosition() = randP;
             // PUs.push_back(tmpPU);
             placePU(map);
-            if(i = 0)
+            if(i == 0)
             {
                 PUs[i].tmp = 0;
 
             }
-            if(i = 1)
+            if(i == 1)
             {
                 PUs[i].tmp = 1;
             }
@@ -992,6 +1016,7 @@ private:
                 //cout << "powerup revealed" << endl;
                 if(player.playerOnPU(powerUp))
                 {
+                    powerUp.shouldRemove();
                     cout << powerUp.tmp << endl;
                     if(powerUp.tmp == 0)
                     {
@@ -1005,7 +1030,7 @@ private:
                     {
                         doublePlayerSpeed();
                     }
-                    powerUp.shouldRemove();
+                    
                 }
             }
         }
