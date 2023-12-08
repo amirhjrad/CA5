@@ -26,10 +26,12 @@ public:
         loadTexture();
         remove = 0;
         Revealed = 0;
+        tmp = 0;
     }
     void loadTexture()
     {
         texture.loadFromFile("assets/life.png");
+        //texture2.loadFromFile("");
         shape.setTexture(&texture);
     }
     void draw(sf::RenderWindow& window) {window.draw(shape);}
@@ -39,11 +41,15 @@ public:
     void shouldRemove() { remove = true; }
     bool isRevealed() {return Revealed;}
     void shouldReveal() {Revealed = true;}
+    int tmp;
+
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
+    sf:: Texture texture2;
     bool remove;
     bool Revealed;
+
 };
 class Bomb {
 public:
@@ -143,12 +149,30 @@ public:
     {
         texture.loadFromFile("assets/enemy.png");
         shape.setTexture(&texture);
+        remove = false;
     }
     int direction;
     void move(sf::Vector2f& movement) { shape.move(movement); }
     void draw(sf::RenderWindow& window) { window.draw(shape); }
     void setPosition(sf::Vector2f position) { shape.setPosition(position); }
     sf::Vector2f getPosition() {return shape.getPosition();}
+    bool isRemovable() { return remove; }
+    void shouldRemove() { remove = true; }
+    bool enemyOnBomb(Bomb tmpBomb) 
+    {
+        sf::Vector2f playerPos = shape.getPosition();
+        sf::Vector2f bombPos = tmpBomb.getPosition();
+        float PlayerXPos = (playerPos.x + 50/2);
+        float PlayerYPos = (playerPos.y + 50/2);
+        if(playerPos == bombPos || 
+          (PlayerXPos > bombPos.x && PlayerXPos <= (bombPos.x + 2*50.0) && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
+          (PlayerXPos < bombPos.x && playerPos.x >= bombPos.x - 2*50.0 && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
+          (PlayerYPos <= bombPos.y + 50 && PlayerYPos >= bombPos.y - 50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2) ||
+          (PlayerYPos >= bombPos.y && PlayerYPos <= bombPos.y + 2*50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2)
+          )
+            return true;
+        else return false;
+    }
     sf::FloatRect getBounds() { return shape.getGlobalBounds(); }
     bool isVertical;
     bool upOrRight;
@@ -156,6 +180,8 @@ public:
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
+    bool remove;
+
 };
 
 class Player {
@@ -209,6 +235,20 @@ public:
         else 
             return false;
     }
+    bool playerOnPU(PowerUp tmpPU)
+    {
+        sf::Vector2f playerPos = shape.getPosition();
+        sf::Vector2f PUPos = tmpPU.getPosition();
+        float PlayerXPos = (playerPos.x + 50/2);
+        float PlayerYPos = (playerPos.y + 50/2);
+
+        float tolerance = 30;
+        
+        if (abs(PlayerXPos - PUPos.x) <= tolerance && abs(PlayerYPos - PUPos.y) <= tolerance)
+            return true;
+        else 
+            return false;        
+    }
 
     bool playerOnEnemy(Enemy tmpEnemy)
     {
@@ -235,7 +275,7 @@ public:
     int getNumOfBombs() { return numOfBombs; }
 
     int getLives() { return lives; }
-
+    void incLive() {lives += 1;}
     void incNumOfBombs() { numOfBombs += 1 ; }
     void collectKey() {numOfCollectedKeys += 1;}
     int getNumOfCollectedKeys() {return numOfCollectedKeys;}
@@ -343,7 +383,7 @@ private:
 class Game
 {
 public:
-    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { revealedKeys = 0; }
+    Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Game") { revealedKeys = 0; revealedPUs = 0;}
     void removeCollectedKeys()
     {
         keys.erase(remove_if(keys.begin(), keys.end(), []( Key& key) 
@@ -351,9 +391,23 @@ public:
             return key.isRemovable();
         }), keys.end());    
     }
-    void lifePowerUp()
+    void removePU()
     {
-
+        PUs.erase(remove_if(PUs.begin(), PUs.end(), []( PowerUp& PU) 
+        {
+            return PU.isRemovable();
+        }), PUs.end());    
+    }
+    void removeEnemy()
+    {
+        enemies.erase(remove_if(enemies.begin(), enemies.end(), []( Enemy& enemy) 
+        {
+            return enemy.isRemovable();
+        }), enemies.end());    
+    }
+    void doublePlayerSpeed()
+    {
+        PLAYER_SPEED *= 2;
     }
     void handleKeyreveal()
     {
@@ -362,7 +416,7 @@ public:
         {
             int x = keys[i].getPosition().x / 50;
             int y = keys[i].getPosition().y / 50;
-            
+            cout << "k " << x << " " << y << endl;
             if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT)
             {
                 if(map[y][x] == ' ')
@@ -374,7 +428,25 @@ public:
             
         }
     }
-
+    void handlePUReveal()
+    {
+        int numOfPU = 2;
+        for(int i = 0; i < numOfPU; i++)
+        {
+            int x = PUs[i].getPosition().x / 50;
+            int y = PUs[i].getPosition().y / 50;
+            cout << x << " " << y << endl;
+            if(x >= 0 && x < WINDOW_WIDTH && y >= 0 && y < WINDOW_HEIGHT)
+            {
+                if(map[y][x] == ' ')
+                {
+                    revealedPUs += 1;
+                
+                    PUs[i].shouldReveal();
+                }
+            }  
+        }        
+    }
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     {
         int bombGridX = static_cast<int>(bombPosition.x) / 50;
@@ -402,46 +474,46 @@ public:
         }
     }
     
-    sf::Vector2f placeRandomPosition()
-    {
-        vector<pair<int, int>> wallPositions;
-        for (int i = 0; i < map.size(); ++i) 
-        {
-            for (int j = 0; j < map[i].size(); ++j) 
-            {
-                if (map[i][j] == 'B') 
-                {
-                    wallPositions.push_back(make_pair(i, j));
-                }
-            }
-        }
-        random_device rd;
-        mt19937 gen(rd());
-        shuffle(wallPositions.begin(), wallPositions.end(), gen);
-        uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
-        int randomIndex = dist(gen);
-        pair<int, int> availablePosition = wallPositions[randomIndex];
-        sf::Vector2f playerPosition = player.getPosition();
-        sf::Vector2f positionSF(availablePosition.second * 50, availablePosition.first * 50);
-        if (tookenPositions.size() == 0)
-        {
-            tookenPositions[positionSF.x][positionSF.y] = 1;
-            return positionSF;
-        }
-        else
-        {
-            for(int i = 0; i < tookenPositions.size(); i++)
-            {
-                for(int j = 0; j < tookenPositions[i].size(); i++)
-                {
-                    if(tookenPositions[i][j] == 1)
-                        placeRandomPosition();
-                }
-            }
-            tookenPositions[positionSF.x][positionSF.y] = 1;
-            return positionSF;
-        }
-    }
+    // sf::Vector2f placeRandomPosition()
+    // {
+    //     vector<pair<int, int>> wallPositions;
+    //     for (int i = 0; i < map.size(); ++i) 
+    //     {
+    //         for (int j = 0; j < map[i].size(); ++j) 
+    //         {
+    //             if (map[i][j] == 'B') 
+    //             {
+    //                 wallPositions.push_back(make_pair(i, j));
+    //             }
+    //         }
+    //     }
+    //     random_device rd;
+    //     mt19937 gen(rd());
+    //     shuffle(wallPositions.begin(), wallPositions.end(), gen);
+    //     uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
+    //     int randomIndex = dist(gen);
+    //     pair<int, int> availablePosition = wallPositions[randomIndex];
+    //     sf::Vector2f playerPosition = player.getPosition();
+    //     sf::Vector2f positionSF(availablePosition.second * 50, availablePosition.first * 50);
+    //     if (tookenPositions.size() == 0)
+    //     {
+    //         tookenPositions[positionSF.x][positionSF.y] = 1;
+    //         return positionSF;
+    //     }
+    //     else
+    //     {
+    //         for(int i = 0; i < tookenPositions.size(); i++)
+    //         {
+    //             for(int j = 0; j < tookenPositions[i].size(); i++)
+    //             {
+    //                 if(tookenPositions[i][j] == 1)
+    //                     placeRandomPosition();
+    //             }
+    //         }
+    //         tookenPositions[positionSF.x][positionSF.y] = 1;
+    //         return positionSF;
+    //     }
+    // }
     void placeKey(vector<vector<char>>& mapData)
     {
         vector<pair<int, int>> wallPositions;
@@ -453,7 +525,6 @@ public:
                 if (mapData[i][j] == 'B') 
                 {
                     wallPositions.push_back(make_pair(i, j));
-                    //cout << "wall position: " << i << "," << j << endl;
                 }
             }
         }
@@ -463,7 +534,6 @@ public:
         uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
         int randomIndex = dist(gen);
         pair<int, int> keyPosition = wallPositions[randomIndex];
-        sf::Vector2f playerPosition = player.getPosition();
         sf::Vector2f keyPositionSF(keyPosition.second * 50, keyPosition.first * 50);
         tmpKey.setPosition(keyPositionSF);
         if (keys.size() == 0)
@@ -472,7 +542,7 @@ public:
         }
         else
         {
-            for(int i = 0; i < tookenPositions.size(); i++)
+            for(int i = 0; i < keys.size(); i++)
             {
                 if(keys[i].getPosition() == tmpKey.getPosition())
                 {
@@ -483,6 +553,49 @@ public:
         }
     }
 
+    void placePU(vector<vector<char>>& mapData)
+    {
+        vector<pair<int, int>> wallPositions;
+
+        for (int i = 0; i < mapData.size(); ++i) 
+        {
+            for (int j = 0; j < mapData[i].size(); ++j) 
+            {
+                if (mapData[i][j] == 'B') 
+                {
+                    wallPositions.push_back(make_pair(i, j));
+                }
+            }
+        }
+        random_device rd;
+        mt19937 gen(rd());
+        shuffle(wallPositions.begin(), wallPositions.end(), gen);
+        uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
+        int randomIndex = dist(gen);
+        pair<int, int> PUPosition = wallPositions[randomIndex];
+        sf::Vector2f playerPosition = player.getPosition();
+        sf::Vector2f PUPositionSF(PUPosition.second * 50, PUPosition.first * 50);
+        tmpPU.setPosition(PUPositionSF);
+        if (PUs.size() == 0)
+        {
+            PUs.push_back(tmpPU);
+        }
+        else
+        {
+            for(int i = 0; i < PUs.size(); i++)
+            {
+                for(int j = 0; j < 3; j++)
+                {
+                    if(PUs[i].getPosition() == tmpPU.getPosition() || PUs[i].getPosition() == keys[j].getPosition())
+                    {
+                        placePU(mapData);
+                    }
+                }
+            }
+            PUs.push_back(tmpPU);       
+        }
+    }
+
     void removeExpiredBombs()
     {
         bombs.erase(remove_if(bombs.begin(), bombs.end(), []( Bomb& bomb) 
@@ -490,7 +603,7 @@ public:
             return bomb.remove();
         }), bombs.end());
     }
-    
+
     void drawTexture()
     {
         int numRows = map.size();
@@ -751,12 +864,22 @@ void handleEnemyMovement(Enemy& enemy)
         {
             placeKey(map);
         }
-        // for(int i = 0; i < 2; i++)
-        // {
-        //     sf::Vector2f randP = placeRandomPosition();
-        //     tmpPU.getPosition() = randP;
-        //     PUs.push_back(tmpPU);
-        // }
+        for(int i = 0; i < 2; i++)
+        {
+            // sf::Vector2f randP = placeRandomPosition();
+            // tmpPU.getPosition() = randP;
+            // PUs.push_back(tmpPU);
+            placePU(map);
+            if(i = 0)
+            {
+                PUs[i].tmp = 0;
+
+            }
+            if(i = 1)
+            {
+                PUs[i].tmp = 1;
+            }
+        }
     }
 
     void drawInfoBoard() {
@@ -807,7 +930,6 @@ private:
                 handleBombPlacement();
         }
     }
-
     void update(sf::Time deltaTime)
     {
         //cout << gameTimer <<endl;
@@ -820,7 +942,6 @@ private:
         int tmp = 0;
         for(Enemy &enemy : enemies)
         {
-            //cout << tmp << " :  ";
             handleEnemyMovement(enemy);
             tmp++;
         }
@@ -829,7 +950,7 @@ private:
         {
             float timePassed = clock.getElapsedTime().asSeconds();
             lastTimeCalled = timePassed + 0.5;
-            cout << lastTimeCalled << endl;
+            //cout << lastTimeCalled << endl;
             if (lastTimeCalled < 2)
                 continue;
 
@@ -849,10 +970,46 @@ private:
                 if(player.playerOnBomb(bomb)) {
                     player.decLives();
                 }
+                for(Enemy &enemy : enemies)
+                {
+                    if(enemy.enemyOnBomb(bomb))
+                    {
+                        enemy.shouldRemove();
+                        cout << "enemy on bomb" << endl;
+                    }
+                }
+
             }
         }
+        removeEnemy();
         removeExpiredBombs();
         handleKeyreveal();
+        handlePUReveal();
+        for(PowerUp& powerUp : PUs)
+        {
+            if(powerUp.isRevealed())
+            {
+                //cout << "powerup revealed" << endl;
+                if(player.playerOnPU(powerUp))
+                {
+                    cout << powerUp.tmp << endl;
+                    if(powerUp.tmp == 0)
+                    {
+                        if(player.getLives() < 3)
+                        {
+                            cout << player.getLives() << endl;
+                            player.incLive();
+                        }
+                    }
+                    if(powerUp.tmp == 1)
+                    {
+                        doublePlayerSpeed();
+                    }
+                    powerUp.shouldRemove();
+                }
+            }
+        }
+        removePU(); //bug detected
         for (Key& key : keys) 
         {
             if(key.isRevealed())
@@ -883,6 +1040,7 @@ private:
                 tmpKey.draw(window);
             }
         }
+
         for(PowerUp &tmpPU : PUs)
         {
             if(tmpPU.isRevealed())
@@ -921,6 +1079,7 @@ private:
     sf::Clock clock;
     sf::Time timePassed;
     vector<vector<int>> tookenPositions;
+    int revealedPUs;
 };
 
 int main()
