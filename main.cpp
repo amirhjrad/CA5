@@ -113,7 +113,7 @@ public:
 
     void loadTexture()
     {
-        texture.loadFromFile("assets/key2.png");
+        texture.loadFromFile("assets/enemy.png");
         shape.setTexture(&texture);
     }
     int direction;
@@ -191,7 +191,7 @@ bool playerOnEnemy(Enemy tmpEnemy)
     cout << "player(" << PlayerXPos << "," << PlayerYPos<< ")" << endl;
     cout << "enemy(" << enemyPos.x  << "," << enemyPos.y  << ")" << endl;
     
-    float tolerance = 15;
+    float tolerance = 30;
     
     if (abs(PlayerXPos - enemyPos.x) <= tolerance && abs(PlayerYPos - enemyPos.y) <= tolerance)
         return true;
@@ -787,7 +787,7 @@ private:
         if(enemy.recentlyHitPlayer)
         {
             cout << " recently hit an enemy " << lastTimeCalled;
-            if(lastTimeCalled <= 10)
+            if(lastTimeCalled <= 2)
             {
                 cout << "last time " << lastTimeCalled  << endl;
                 continue;
