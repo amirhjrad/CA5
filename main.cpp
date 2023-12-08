@@ -13,27 +13,9 @@ using namespace std;
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 float PLAYER_SPEED = 200.0f;
-const float ENEMY_SPEED = 100.0f;
+const float ENEMY_SPEED = 5.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
-// class Door
-// {
-// public:
-//     Door()
-//     {
-//         shape.setSize(sf::Vector2f(50.0f, 50.0f));
-//         loadTexture();   
-         
-//     }
-//     void loadTexture()
-//     {
-//         texture.loadFromFile("assets/life.png");
-//         //texture2.loadFromFile("");
-//         shape.setTexture(&texture);
-//     }
-// private:
-
-// };
 class PowerUp
 {
 public:
@@ -48,7 +30,7 @@ public:
     void loadTexture()
     {
         texture.loadFromFile("assets/life.png");
-        //texture2.loadFromFile("");
+        texture2.loadFromFile("assets/speed2.png");
         shape.setTexture(&texture);
     }
     void draw(sf::RenderWindow& window) {window.draw(shape);}
@@ -59,7 +41,13 @@ public:
     bool isRevealed() {return Revealed;}
     void shouldReveal() {Revealed = true;}
     int tmp;
-
+   void setTexture(int flag)
+    {
+        if (flag == 0)
+            shape.setTexture(&texture);
+        else if (flag == 1)
+            shape.setTexture(&texture2);
+    }
 private:
     sf::RectangleShape shape;
     sf::Texture texture;
@@ -716,7 +704,6 @@ public:
     }
 void handleEnemyMovement(Enemy& enemy)
 {
-    const float ENEMY_SPEED = 5.0f;
     sf::Vector2f movement(0.0f, 0.0f);
 
     if (enemy.isVertical) {
@@ -1070,6 +1057,7 @@ private:
         {
             if(tmpPU.isRevealed())
             {
+                tmpPU.setTexture(tmpPU.tmp);
                 tmpPU.draw(window);
             }
         }
