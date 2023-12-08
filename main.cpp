@@ -12,7 +12,7 @@ using namespace std;
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-float PLAYER_SPEED = 200.0f;
+const float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 5.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
