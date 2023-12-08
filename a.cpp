@@ -423,22 +423,19 @@ public:
         pair<int, int> availablePosition = wallPositions[randomIndex];
         sf::Vector2f playerPosition = player.getPosition();
         sf::Vector2f positionSF(availablePosition.second * 50, availablePosition.first * 50);
-        if (tookenPositions.size() == 0)
+        if (keys.size() == 0)
         {
-            tookenPositions[positionSF.x][positionSF.y] = 1;
             return positionSF;
         }
         else
         {
             for(int i = 0; i < tookenPositions.size(); i++)
             {
-                for(int j = 0; j < tookenPositions[i].size(); i++)
+                if(keys[i].getPosition() == tmpKey.getPosition())
                 {
-                    if(tookenPositions[i][j] == 1)
-                        placeRandomPosition();
+                    placeRandomPosition();
                 }
             }
-            tookenPositions[positionSF.x][positionSF.y] = 1;
             return positionSF;
         }
     }

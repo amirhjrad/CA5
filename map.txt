@@ -1,12 +1,12 @@
 60
-       BBBV    V
-B H   B      B  
-B     P   BBBB  
-BH    PPPPP     
-B               
-B               
-BH   BBBB   BBBB
-B     B  B  B   
-B     B  BBBB   
+          V    V
 B     B         
-BBBBBBB   P     
+B     P         
+B     PPPPP     
+B               
+B               
+BH              
+                
+                
+                
+          P     
