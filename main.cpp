@@ -12,7 +12,7 @@ using namespace std;
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const float PLAYER_SPEED = 200.0f;
+float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 100.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
@@ -100,6 +100,28 @@ private:
     float explosionTimer;
 };
 
+class Door {
+public:
+    Door()
+    {
+        shape.setSize(sf::Vector2f(50.0f, 50.0f));
+        loadTexture();
+    }
+
+    void loadTexture()
+    {
+        texture.loadFromFile("assets/door.png");
+        shape.setTexture(&texture);
+    }
+
+    void draw(sf::RenderWindow& window) { window.draw(shape); }
+    void setPosition(sf::Vector2f position) { shape.setPosition(position); }
+    sf::Vector2f getPosition() { return shape.getPosition(); }
+
+private:
+    sf::RectangleShape shape;
+    sf::Texture texture;
+};
 class Key {
 public:
     Key() 
@@ -203,6 +225,19 @@ public:
         textureRight.loadFromFile("assets/boy/right.png");
     }
 
+    bool playerOnDoor(Door door) {
+        sf::Vector2f playerPos = shape.getPosition();
+        sf::Vector2f doorPos = door.getPosition();
+        float PlayerXPos = (playerPos.x + 50/2);
+        float PlayerYPos = (playerPos.y + 50/2);;
+        
+        float tolerance = 30;
+        
+        if (abs(PlayerXPos - doorPos.x) <= tolerance && abs(PlayerYPos - doorPos.y) <= tolerance && numOfCollectedKeys == 3)
+            return true;
+        else 
+            return false;
+    }
     bool playerOnBomb(Bomb tmpBomb) {
         sf::Vector2f playerPos = shape.getPosition();
         sf::Vector2f bombPos = tmpBomb.getPosition();
@@ -311,6 +346,7 @@ private:
     int numOfCollectedKeys;
     int lives;
 };
+
 
 class HardObstacle {
 public:
@@ -453,6 +489,25 @@ public:
         int bombGridY = static_cast<int>(bombPosition.y) / 50;
         int radius = 1; 
         
+        if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'D')
+        {   
+                map[bombGridY - radius][bombGridX] = 'd';
+        }
+
+        if (bombGridY + radius < map.size() && map[bombGridY + radius][bombGridX] == 'D')
+        {
+                map[bombGridY + radius][bombGridX] = 'd';
+        }
+
+        if (bombGridX - radius >= 0 && map[bombGridY][bombGridX - radius] == 'D')
+        {
+                map[bombGridY][bombGridX - radius] = 'd';
+        }
+
+        if (bombGridX + radius < map[bombGridY].size() && map[bombGridY][bombGridX + radius] == 'D')
+        {
+                map[bombGridY][bombGridX + radius] = 'd';
+        }
        if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
         {   
                 map[bombGridY - radius][bombGridX] = ' ';
@@ -606,6 +661,16 @@ public:
 
     void drawTexture()
     {
+        int numTilesX = window.getSize().x / 50;
+        int numTilesY = window.getSize().y / 50;
+        for (int i = 0; i < numTilesX; ++i) {
+            for (int j = 0; j < numTilesY; ++j) {
+                if (map[j][i] == ' ' || map[j][i] == 'd') {
+                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
+                    grass.draw(window);
+                }
+            }
+        }
         int numRows = map.size();
         int numCols = (numRows > 0) ? map[0].size() : 0;
         for (int i = 0; i < numRows; ++i)
@@ -640,20 +705,20 @@ public:
                     enemies.push_back(tmpEnemy);
                     map[i][j] = ' ';
                 }
-            }
-        }
-        int numTilesX = window.getSize().x / 50;
-        int numTilesY = window.getSize().y / 50;
-        for (int i = 0; i < numTilesX; ++i) {
-            for (int j = 0; j < numTilesY; ++j) {
-                if (map[j][i] == ' ') {
-                    grass.setPosition(sf::Vector2f(i * 50, j * 50));
-                    grass.draw(window);
+                else if(c == 'D')
+                {
+                    SoftObstacle obs;
+                    obs.setPosition(position);
+                    obs.draw(window);
+                    door.setPosition(position);
+                }
+                else if(c == 'd')
+                {
+                    door.setPosition(position);
+                    door.draw(window);
                 }
             }
         }
-
-
     }
     
     void EndGame() 
@@ -672,6 +737,20 @@ public:
             message.setFont(font);
             message.setCharacterSize(24);
         }
+        message.setFillColor(sf::Color::White);
+        message.setPosition(WINDOW_WIDTH/2.5, WINDOW_HEIGHT/2.5);
+        window.draw(message);
+        window.display();
+    }
+
+    void Win(){
+        window.clear();
+        sf::Font font;
+        font.loadFromFile("assets/fonts/arial.ttf");
+        sf::Text message;
+        message.setString("You won!");
+        message.setFont(font);
+        message.setCharacterSize(24);
         message.setFillColor(sf::Color::White);
         message.setPosition(WINDOW_WIDTH/2.5, WINDOW_HEIGHT/2.5);
         window.draw(message);
@@ -726,7 +805,7 @@ void handleEnemyMovement(Enemy& enemy)
         return;
     }
 
-    else if (map[y + 1][x] == 'B' || map[y + 1][x] == 'P') 
+    else if (map[y + 1][x] == 'B' || map[y + 1][x] == 'P' || map[y + 1][x] == 'D') 
     {
             if (enemy.isVertical) 
             {
@@ -735,7 +814,7 @@ void handleEnemyMovement(Enemy& enemy)
             }
     }
 
-    else if(map[y][x] == 'B' || map[y][x] == 'P')
+    else if(map[y][x] == 'B' || map[y][x] == 'P' || map[y][x] == 'D')
     {
             if (enemy.isVertical) 
             {
@@ -748,7 +827,7 @@ void handleEnemyMovement(Enemy& enemy)
                 movement.x = -movement.x;                
             }      
     }
-    else if(map[y][x + 1] == 'B' || map[y][x + 1] == 'P')
+    else if(map[y][x + 1] == 'B' || map[y][x + 1] == 'P' || map[y][x + 1] == 'D')
     {
         if(!enemy.isVertical)
         {
@@ -799,7 +878,7 @@ void handleEnemyMovement(Enemy& enemy)
                 sf::Vector2f obstaclePosition(j * 50, i * 50);
                 sf::FloatRect obstacleBounds(obstaclePosition, sf::Vector2f(40.0f, 40.0f));
 
-                if (c == 'B' || c == 'P')
+                if (c == 'B' || c == 'P' || c == 'D')
                 {
                     if (newBounds.intersects(obstacleBounds))
                     {
@@ -995,7 +1074,7 @@ private:
                     cout << powerUp.tmp << endl;
                     if(powerUp.tmp == 0)
                     {
-                        if(player.getLives() < 3)
+                        if(player.getLives() < 2)
                         {
                             cout << player.getLives() << endl;
                             player.incLive();
@@ -1020,6 +1099,10 @@ private:
                     key.shouldRemove();
                 }
             }
+        }
+        if(player.playerOnDoor(door)){
+            finished = true;
+            Win();
         }
         removeCollectedKeys();
     }
@@ -1057,6 +1140,7 @@ private:
             window.display();
     }
 
+    Door door;
     std::chrono::time_point<std::chrono::system_clock> startTime;
     int gameTimer;
     int revealedKeys;
