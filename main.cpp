@@ -613,6 +613,7 @@ public:
         }
     }
 
+
     void placePU(vector<vector<char>>& mapData)
     {
         vector<pair<int, int>> wallPositions;
@@ -636,25 +637,29 @@ public:
         sf::Vector2f playerPosition = player.getPosition();
         sf::Vector2f PUPositionSF(PUPosition.second * 50, PUPosition.first * 50);
         tmpPU.setPosition(PUPositionSF);
-        if (PUs.size() == 0)
+
+        bool overlap = false;
+        for (int i = 0; i < PUs.size(); i++)
         {
-            PUs.push_back(tmpPU);
+            for (int j = 0; j < 3; j++)
+            {
+                if (PUs[i].getPosition() == tmpPU.getPosition() || PUs[i].getPosition() == keys[j].getPosition())
+                {
+                    overlap = true;
+                    break;
+                }
+            }
+        }
+
+        if (overlap)
+        {
+            placePU(mapData);
         }
         else
         {
-            for(int i = 0; i < PUs.size(); i++)
-            {
-                for(int j = 0; j < 3; j++)
-                {
-                    if(PUs[i].getPosition() == tmpPU.getPosition() || PUs[i].getPosition() == keys[j].getPosition())
-                    {
-                        placePU(mapData);
-                    }
-                }
-            }
-            PUs.push_back(tmpPU);       
+            PUs.push_back(tmpPU);
         }
-    }
+    }   
 
     void removeExpiredBombs()
     {
