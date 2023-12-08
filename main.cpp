@@ -713,8 +713,8 @@ public:
 
             }
         }
-        numTilesX = window.getSize().x / 50;
-        numTilesY = window.getSize().y / 50;
+        int numTilesX = window.getSize().x / 50;
+        int numTilesY = window.getSize().y / 50;
         for (int i = 0; i < numTilesX; ++i) {
             for (int j = 0; j < numTilesY; ++j) {
                 if (map[j][i] == ' ') {
@@ -1177,8 +1177,3 @@ int main()
     game.run();
     return 0;
 }
-
-
-
-
-
