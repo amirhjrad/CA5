@@ -12,7 +12,7 @@ using namespace std;
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
-const float PLAYER_SPEED = 200.0f;
+float PLAYER_SPEED = 200.0f;
 const float ENEMY_SPEED = 5.0f;
 const float BOMB_TIMER_DURATION = 2.0f;
 const float EXPLOSION_TIMER_DURATION = 0.5f; 
@@ -713,8 +713,8 @@ public:
 
             }
         }
-        int numTilesX = window.getSize().x / 50;
-        int numTilesY = window.getSize().y / 50;
+        numTilesX = window.getSize().x / 50;
+        numTilesY = window.getSize().y / 50;
         for (int i = 0; i < numTilesX; ++i) {
             for (int j = 0; j < numTilesY; ++j) {
                 if (map[j][i] == ' ') {
