@@ -1,8 +1,9 @@
 #include "key.h"
+#include "constants.h"
 
 Key::Key()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(KEYS_SIZE, KEYS_SIZE));
     loadTexture();
     remove = false;
     Revealed = false;
@@ -10,7 +11,7 @@ Key::Key()
 
 void Key::loadTexture()
 {
-    texture.loadFromFile("assets/key.png");
+    texture.loadFromFile(KEYS_TEXTURE);
     shape.setTexture(&texture);
 }
 

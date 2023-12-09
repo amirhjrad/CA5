@@ -11,7 +11,6 @@
 #include "soft_obs.h"
 #include "key.h"
 #include "pu.h"
-#include "constants.h"
 class Player
 {
 private:

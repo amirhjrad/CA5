@@ -1,31 +1,32 @@
 #include "player.h"
+#include "constants.h"
 
 Player::Player()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(PLAYER_SIZE, PLAYER_SIZE));
     shape.setPosition(0.0f, 50.0f);
     loadTexture();
-    setTexture("Right");
-    numOfBombs = 0;
-    numOfCollectedKeys = 0;
-    lives = 2;
+    setTexture(RIGHT);
+    numOfBombs = INIT_BOMBS;
+    numOfCollectedKeys = INIT_KEYS;
+    lives = INIT_LIVES;
 }
 
 void Player::loadTexture()
 {
-    textureUp.loadFromFile("assets/boy/up.png");
-    textureDown.loadFromFile("assets/boy/down.png");
-    textureLeft.loadFromFile("assets/boy/left.png");
-    textureRight.loadFromFile("assets/boy/right.png");
+    textureUp.loadFromFile(UP_TEXTURE);
+    textureDown.loadFromFile(DOWN_TEXTURE);
+    textureLeft.loadFromFile(LEFT_TEXTURE);
+    textureRight.loadFromFile(RIGHT_TEXTURE);
 }
 
 bool Player::playerOnDoor(Door door)
 {
     sf::Vector2f playerPos = shape.getPosition();
     sf::Vector2f doorPos = door.getPosition();
-    float PlayerXPos = (playerPos.x + 50/2);
-    float PlayerYPos = (playerPos.y + 50/2);;   
-    float tolerance = 30;  
+    float PlayerXPos = (playerPos.x + PLAYER_SIZE/2);
+    float PlayerYPos = (playerPos.y + PLAYER_SIZE/2);;   
+    float tolerance = TOLERANCE;  
     if (abs(PlayerXPos - doorPos.x) <= tolerance && abs(PlayerYPos - doorPos.y) <= tolerance && numOfCollectedKeys == 3)
         return true;
     else 
@@ -36,13 +37,13 @@ bool Player::playerOnBomb(Bomb tmpBomb)
 {
     sf::Vector2f playerPos = shape.getPosition();
     sf::Vector2f bombPos = tmpBomb.getPosition();
-    float PlayerXPos = (playerPos.x + 50/2);
-    float PlayerYPos = (playerPos.y + 50/2);
+    float PlayerXPos = (playerPos.x + PLAYER_SIZE/2);
+    float PlayerYPos = (playerPos.y + PLAYER_SIZE/2);
     if(playerPos == bombPos || 
-        (PlayerXPos > bombPos.x && PlayerXPos <= (bombPos.x + 2*50.0) && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
-        (PlayerXPos < bombPos.x && playerPos.x >= bombPos.x - 2*50.0 && PlayerYPos <= bombPos.y + 50/2 && PlayerYPos >= bombPos.y - 50/2) ||
-        (PlayerYPos <= bombPos.y + 50 && PlayerYPos >= bombPos.y - 50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2) ||
-        (PlayerYPos >= bombPos.y && PlayerYPos <= bombPos.y + 2*50.0 && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + 50.0/2)
+        (PlayerXPos > bombPos.x && PlayerXPos <= (bombPos.x + 2*PLAYER_SIZE) && PlayerYPos <= bombPos.y + PLAYER_SIZE/2 && PlayerYPos >= bombPos.y - PLAYER_SIZE/2) ||
+        (PlayerXPos < bombPos.x && playerPos.x >= bombPos.x - 2*PLAYER_SIZE && PlayerYPos <= bombPos.y + PLAYER_SIZE/2 && PlayerYPos >= bombPos.y - PLAYER_SIZE/2) ||
+        (PlayerYPos <= bombPos.y + PLAYER_SIZE && PlayerYPos >= bombPos.y - PLAYER_SIZE && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + PLAYER_SIZE/2) ||
+        (PlayerYPos >= bombPos.y && PlayerYPos <= bombPos.y + 2*PLAYER_SIZE && PlayerXPos >= bombPos.x && PlayerXPos <= bombPos.x + PLAYER_SIZE/2)
         )
         return true;
     else return false;
@@ -52,9 +53,9 @@ bool Player::playerOnKey(Key tmpKey)
 {
     sf::Vector2f playerPos = shape.getPosition();
     sf::Vector2f keyPos = tmpKey.getPosition();
-    float PlayerXPos = (playerPos.x + 50/2);
-    float PlayerYPos = (playerPos.y + 50/2);
-    float tolerance = 30;
+    float PlayerXPos = (playerPos.x + PLAYER_SIZE/2);
+    float PlayerYPos = (playerPos.y + PLAYER_SIZE/2);
+    float tolerance = TOLERANCE;
     if (abs(PlayerXPos - keyPos.x) <= tolerance && abs(PlayerYPos - keyPos.y) <= tolerance)
         return true;
     else 
@@ -67,7 +68,7 @@ bool Player::playerOnPU(PowerUp tmpPU)
     sf::Vector2f PUPos = tmpPU.getPosition();
     float PlayerXPos = (playerPos.x + 50/2);
     float PlayerYPos = (playerPos.y + 50/2);
-    float tolerance = 30;
+    float tolerance = TOLERANCE;
     if (abs(PlayerXPos - PUPos.x) <= tolerance && abs(PlayerYPos - PUPos.y) <= tolerance)
         return true;
     else 
@@ -80,7 +81,7 @@ bool Player::playerOnEnemy(Enemy tmpEnemy)
     sf::Vector2f enemyPos = tmpEnemy.getPosition();
     float PlayerXPos = playerPos.x; 
     float PlayerYPos = playerPos.y; 
-    float tolerance = 30;       
+    float tolerance = TOLERANCE;       
     if (abs(PlayerXPos - enemyPos.x) <= tolerance && abs(PlayerYPos - enemyPos.y) <= tolerance)
         return true;
     else 
@@ -115,12 +116,12 @@ void Player::draw(sf::RenderWindow& window) { window.draw(shape); }
 
 void Player::setTexture(std::string direction)
 {
-    if (direction == "Up")
+    if (direction == UP)
         shape.setTexture(&textureUp);
-    else if (direction == "Down")
+    else if (direction == DOWN)
         shape.setTexture(&textureDown);
-    else if (direction == "Right")
+    else if (direction == RIGHT)
         shape.setTexture(&textureRight);
-    else if (direction == "Left")
+    else if (direction == LEFT)
         shape.setTexture(&textureLeft);
 }

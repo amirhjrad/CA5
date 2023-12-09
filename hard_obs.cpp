@@ -1,14 +1,15 @@
 #include "hard_obs.h"
+#include "constants.h"
 
 HardObstacle::HardObstacle()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(HARD_OBS_SIZE, HARD_OBS_SIZE));
     loadTexture();
 }
 
 void HardObstacle::loadTexture()
 {
-    texture.loadFromFile("assets/wall-2.png");
+    texture.loadFromFile(HARD_OBS_TEXTURE);
     shape.setTexture(&texture);
 }
 

@@ -1,15 +1,15 @@
 #include "door.h"
-
+#include "constants.h"
 
 Door::Door()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(DOOR_SIZE, DOOR_SIZE));
     loadTexture();
 }
 
 void Door::loadTexture()
 {
-    texture.loadFromFile("assets/door.png");
+    texture.loadFromFile(DOOR_TEXTURE);
     shape.setTexture(&texture);
 }
 

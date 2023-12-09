@@ -1,19 +1,20 @@
 #include "bomb.h"
+#include "constants.h"
 
 Bomb::Bomb()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(BOMB_SIZE, BOMB_SIZE));
     loadTexture();
     isExploded = false;
-    bombTimer = 0.0f;
-    explosionTimer = 0.0f;
+    bombTimer = INIT_TIMER;
+    explosionTimer = INIT_TIMER;
     shouldRemove = false;
 }
 
 void Bomb::loadTexture()
 {
-    texture.loadFromFile("assets/bomb.png");
-    explosionTexture.loadFromFile("assets/explosion.png");
+    texture.loadFromFile(BOMB_TEXTURE);
+    explosionTexture.loadFromFile(EXP_TEXTURE);
     shape.setTexture(&texture);
 }
 
@@ -24,7 +25,7 @@ void Bomb::update(sf::Time deltaTime)
         if (bombTimer >= BOMB_TIMER_DURATION) {
             shape.setTexture(&explosionTexture);
             isExploded = true;
-            explosionTimer = 0.0f;
+            explosionTimer = INIT_TIMER;
         }
     } else {
         explosionTimer += deltaTime.asSeconds();

@@ -2,7 +2,7 @@
 #define ENEMY_H
 #include <SFML/Graphics.hpp>
 #include "bomb.h"
-class Bomb;
+
 class Enemy
 {
 public:

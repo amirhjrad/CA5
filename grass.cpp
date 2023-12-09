@@ -1,14 +1,15 @@
 #include "grass.h"
+#include "constants.h"
 
 Grass::Grass()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(GRASS_SIZE, GRASS_SIZE));
     loadTexture();
 }
 
 void Grass::loadTexture()
 {
-    texture.loadFromFile("assets/grass.png");
+    texture.loadFromFile(GRASS_TEXTURE);
     shape.setTexture(&texture);
 }
 

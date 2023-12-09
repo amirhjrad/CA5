@@ -1,8 +1,9 @@
 #include "pu.h"
+#include "constants.h"
 
 PowerUp::PowerUp()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(PU_SIZE, PU_SIZE));
     loadTexture();
     remove = 0;
     Revealed = 0;
@@ -11,8 +12,8 @@ PowerUp::PowerUp()
 
 void PowerUp::loadTexture()
 {
-    texture.loadFromFile("assets/life.png");
-    texture2.loadFromFile("assets/speed2.png");
+    texture.loadFromFile(PULife_TEXTURE);
+    texture2.loadFromFile(PUSPEED_TEXTURE);
     shape.setTexture(&texture);
 }
 

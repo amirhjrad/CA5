@@ -7,6 +7,7 @@
 #include <chrono> 
 #include <random>
 #include <fstream>
+#include "constants.h"
 #include "player.h"
 #include "door.h"
 #include "bomb.h"
@@ -14,7 +15,6 @@
 #include "key.h"
 #include "pu.h"
 #include "enemy.h"
-#include "constants.h"
 
 class Game
 {

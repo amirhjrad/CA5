@@ -1,14 +1,15 @@
 #include "soft_obs.h"
+#include "constants.h"
 
 SoftObstacle::SoftObstacle()
 {
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setSize(sf::Vector2f(SOFT_OBS_SIZE, SOFT_OBS_SIZE));
     loadTexture();
 }
 
 void SoftObstacle::loadTexture()
 {
-    texture.loadFromFile("assets/wall-1.png");
+    texture.loadFromFile(SOFT_OBS_TEXTURE);
     shape.setTexture(&texture);
 }
 
