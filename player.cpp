@@ -25,7 +25,7 @@ bool Player::playerOnDoor(Door door)
     sf::Vector2f doorPos = door.getPosition();
     float PlayerXPos = (playerPos.x + 50/2);
     float PlayerYPos = (playerPos.y + 50/2);;   
-    float tolerance = 15;  
+    float tolerance = 30;  
     if (abs(PlayerXPos - doorPos.x) <= tolerance && abs(PlayerYPos - doorPos.y) <= tolerance && numOfCollectedKeys == 3)
         return true;
     else 

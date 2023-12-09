@@ -56,8 +56,8 @@ public:
     void handleKeyreveal();
     void handlePUReveal();
     void removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition);
-    void placeKey(std::vector<std::vector<char>>& mapData);
-    void placePU(std::vector<std::vector<char>>& mapData);
+    void placeKey();
+    void placePU();
     void removeExpiredBombs();
     void drawTexture();
     void EndGame();

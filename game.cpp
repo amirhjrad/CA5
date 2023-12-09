@@ -71,48 +71,39 @@ void Game::removeSoftObstaclesAroundBomb(const sf::Vector2f& bombPosition)
     int bombGridY = static_cast<int>(bombPosition.y) / 50;
     int radius = 1; 
     
-    if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'D')
-    {   
-            map[bombGridY - radius][bombGridX] = 'd';
-    }
+    if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'D')  
+        map[bombGridY - radius][bombGridX] = 'd';
+
     if (bombGridY + radius < map.size() && map[bombGridY + radius][bombGridX] == 'D')
-    {
-            map[bombGridY + radius][bombGridX] = 'd';
-    }
+        map[bombGridY + radius][bombGridX] = 'd';
+
     if (bombGridX - radius >= 0 && map[bombGridY][bombGridX - radius] == 'D')
-    {
-            map[bombGridY][bombGridX - radius] = 'd';
-    }
+        map[bombGridY][bombGridX - radius] = 'd';
+
     if (bombGridX + radius < map[bombGridY].size() && map[bombGridY][bombGridX + radius] == 'D')
-    {
-            map[bombGridY][bombGridX + radius] = 'd';
-    }
+        map[bombGridY][bombGridX + radius] = 'd';
+
     if (bombGridY - radius >= 0 && map[bombGridY - radius][bombGridX] == 'B')
-    {   
-            map[bombGridY - radius][bombGridX] = ' ';
-    }
+        map[bombGridY - radius][bombGridX] = ' ';
+
     if (bombGridY + radius < map.size() && map[bombGridY + radius][bombGridX] == 'B')
-    {
-            map[bombGridY + radius][bombGridX] = ' ';
-    }
+        map[bombGridY + radius][bombGridX] = ' ';
+
     if (bombGridX - radius >= 0 && map[bombGridY][bombGridX - radius] == 'B')
-    {
-            map[bombGridY][bombGridX - radius] = ' ';
-    }
+        map[bombGridY][bombGridX - radius] = ' ';
+
     if (bombGridX + radius < map[bombGridY].size() && map[bombGridY][bombGridX + radius] == 'B')
-    {
-            map[bombGridY][bombGridX + radius] = ' ';
-    }
+        map[bombGridY][bombGridX + radius] = ' ';
 }
 
-void Game::placeKey(std::vector<std::vector<char>>& mapData)
+void Game::placeKey()
 {
     std::vector<std::pair<int, int>> wallPositions;
-    for (int i = 0; i < mapData.size(); ++i) 
+    for (int i = 0; i < map.size(); ++i) 
     {
-        for (int j = 0; j < mapData[i].size(); ++j) 
+        for (int j = 0; j < map[i].size(); ++j) 
         {
-            if (mapData[i][j] == 'B') 
+            if (map[i][j] == 'B') 
             {
                 wallPositions.push_back(std::make_pair(i, j));
             }
@@ -136,21 +127,21 @@ void Game::placeKey(std::vector<std::vector<char>>& mapData)
         {
             if(keys[i].getPosition() == tmpKey.getPosition())
             {
-                placeKey(mapData);
+                placeKey();
             }
         }
         keys.push_back(tmpKey);       
     }
 }
 
-void Game::placePU(std::vector<std::vector<char>>& mapData)
+void Game::placePU()
 {
     std::vector<std::pair<int, int>> wallPositions;
-    for (int i = 0; i < mapData.size(); ++i) 
+    for (int i = 0; i < map.size(); ++i) 
     {
-        for (int j = 0; j < mapData[i].size(); ++j) 
+        for (int j = 0; j < map[i].size(); ++j) 
         {
-            if (mapData[i][j] == 'B') 
+            if (map[i][j] == 'B') 
             {
                 wallPositions.push_back(std::make_pair(i, j));
             }
@@ -162,28 +153,45 @@ void Game::placePU(std::vector<std::vector<char>>& mapData)
     std::uniform_int_distribution<int> dist(0, wallPositions.size() - 1);
     int randomIndex = dist(gen);
     std::pair<int, int> PUPosition = wallPositions[randomIndex];
-    sf::Vector2f playerPosition = player.getPosition();
     sf::Vector2f PUPositionSF(PUPosition.second * 50, PUPosition.first * 50);
     tmpPU.setPosition(PUPositionSF);
-    if (PUs.size() == 0)
+    
+    bool foundValidPosition = false;
+    while (!foundValidPosition)
     {
-        PUs.push_back(tmpPU);
-    }
-    else
-    {
-        for(int i = 0; i < PUs.size(); i++)
+        bool positionValid = true;
+        for (int i = 0; i < PUs.size(); i++)
         {
-            for(int j = 0; j < 3; j++)
+            if (PUs[i].getPosition() == tmpPU.getPosition())
             {
-                if(PUs[i].getPosition() == tmpPU.getPosition() || PUs[i].getPosition() == keys[j].getPosition())
-                {
-                    placePU(mapData);
-                }
+                positionValid = false;
+                break;
             }
         }
-        PUs.push_back(tmpPU);       
+        for (int j = 0; j < 3; j++)
+        {
+            if (keys[j].getPosition() == tmpPU.getPosition())
+            {
+                positionValid = false;
+                break;
+            }
+        }
+        if (positionValid)
+        {
+            foundValidPosition = true;
+        }
+        else
+        {
+            randomIndex = dist(gen);
+            PUPosition = wallPositions[randomIndex];
+            PUPositionSF = sf::Vector2f(PUPosition.second * 50, PUPosition.first * 50);
+            tmpPU.setPosition(PUPositionSF);
+        }
     }
+    
+    PUs.push_back(tmpPU);
 }
+
 
 void Game::removeExpiredBombs()
 {
@@ -197,9 +205,12 @@ void Game::drawTexture()
 {
     int numTilesX = window.getSize().x / 50;
     int numTilesY = window.getSize().y / 50;
-    for (int i = 0; i < numTilesX; ++i) {
-        for (int j = 0; j < numTilesY; ++j) {
-            if (map[j][i] == ' ' || map[j][i] == 'd') {
+    for (int i = 0; i < numTilesX; ++i) 
+    {
+        for (int j = 0; j < numTilesY; ++j) 
+        {
+            if (map[j][i] == ' ' || map[j][i] == 'd') 
+            {
                 grass.setPosition(sf::Vector2f(i * 50, j * 50));
                 grass.draw(window);
             }
@@ -262,12 +273,14 @@ void Game::EndGame()
     sf::Font font;
     font.loadFromFile("assets/fonts/arial.ttf");
     sf::Text message;
-    if(gameTimer == -1){
+    if(gameTimer == -1)
+    {
         message.setString("Time is finished");
         message.setFont(font);
         message.setCharacterSize(24);
     }
-    else {
+    else 
+    {
         message.setString("Lifes is finished");
         message.setFont(font);
         message.setCharacterSize(24);
@@ -309,19 +322,25 @@ void Game::run()
 void Game::handleEnemyMovement(Enemy& enemy)
 {
     sf::Vector2f movement(0.0f, 0.0f);
-    if (enemy.isVertical) {
-        if (enemy.upOrRight) {
+    if (enemy.isVertical) 
+    {
+        if (enemy.upOrRight) 
+        {
             movement.y -= ENEMY_SPEED;
         }
-        else {
+        else 
+        {
             movement.y += ENEMY_SPEED;
         }
     }
-    else {
-        if (enemy.upOrRight) {
+    else 
+    {
+        if (enemy.upOrRight) 
+        {
             movement.x += ENEMY_SPEED;
         }
-        else {
+        else 
+        {
             movement.x -= ENEMY_SPEED;
         }
     }
@@ -393,7 +412,6 @@ void Game::handlePlayerMovement(sf::Time deltaTime)
     sf::Vector2f newPosition = player.getPosition() + movement;
     sf::FloatRect enemyBounds = player.getBounds();
     sf::FloatRect windowBounds(0.0f, 50.0f - 6, WINDOW_WIDTH, WINDOW_HEIGHT - 50.0f - 6);
-
     sf::FloatRect newBounds(newPosition, sf::Vector2f(enemyBounds.width, enemyBounds.height));
     bool obstacleCollision = false;
     for (int i = 0; i < map.size(); ++i)
@@ -466,11 +484,11 @@ void Game::readMapFile(const std::string& filename)
     file.close();
     for(int i = 0; i < 3; i++)
     {
-        placeKey(map);
+        placeKey();
     }
     for(int i = 0; i < 2; i++)
     {
-        placePU(map);
+        placePU();
         if(i == 0)
         {
             PUs[i].tmp = 0;
@@ -504,7 +522,8 @@ void Game::drawInfoBoard()
     std::chrono::duration<double> countDownDuration(gameTimer); 
     std::chrono::duration<double> elapsedTime = std::chrono::system_clock::now() - startTime;
     std::chrono::duration<double> remainingTime = countDownDuration - elapsedTime;
-    if(remainingTime.count() > 0){
+    if(remainingTime.count() > 0)
+    {
         int remainingSeconds = static_cast<int>(remainingTime.count());
         sf::Text countdownText("Timer: " + std::to_string(remainingSeconds), font, 20);
         countdownText.setFillColor(sf::Color::White);
@@ -535,7 +554,8 @@ void Game::processEvents(sf::Time deltaTime)
 
 void Game::update(sf::Time deltaTime)
 {
-    if(player.playerOnDoor(door)){
+    if(player.playerOnDoor(door))
+    {
         finished = true;
         Win();
     }
@@ -545,18 +565,15 @@ void Game::update(sf::Time deltaTime)
         finished = true;
     }
     handlePlayerMovement(deltaTime);
-    int tmp = 0;
     for(Enemy &enemy : enemies)
     {
         handleEnemyMovement(enemy);
-        tmp++;
     }
     float lastTimeCalled;
     for (Enemy& enemy : enemies)
     {
         float timePassed = clock.getElapsedTime().asSeconds();
         lastTimeCalled = timePassed + 0.5;
-        //cout << lastTimeCalled << endl;
         if (lastTimeCalled < 2)
             continue;
 
@@ -567,12 +584,15 @@ void Game::update(sf::Time deltaTime)
             player.decLives();
         }
     }
-    for (Bomb& bomb : bombs) {
+    for (Bomb& bomb : bombs) 
+    {
         bomb.update(deltaTime);
-        if (bomb.remove()) {
+        if (bomb.remove()) 
+        {
             player.decNumOfBombs();
             removeSoftObstaclesAroundBomb(bomb.getPosition());
-            if(player.playerOnBomb(bomb)) {
+            if(player.playerOnBomb(bomb)) 
+            {
                 player.decLives();
             }
             for(Enemy &enemy : enemies)
@@ -594,28 +614,24 @@ void Game::update(sf::Time deltaTime)
     {
         if(powerUp.isRevealed())
         {
-            //cout << "powerup revealed" << endl;
             if(player.playerOnPU(powerUp))
             {
                 powerUp.shouldRemove();
-                std::cout << powerUp.tmp << std::endl;
                 if(powerUp.tmp == 0)
                 {
-                    if(player.getLives() < 2)
+                    if(player.getLives() < 3)
                     {
-                        std::cout << player.getLives() << std::endl;
                         player.incLive();
                     }
                 }
                 if(powerUp.tmp == 1)
                 {
                     doublePlayerSpeed();
-                }
-                
+                }  
             }
         }
     }
-    removePU(); //bug detected
+    removePU(); 
     for (Key& key : keys) 
     {
         if(key.isRevealed())
