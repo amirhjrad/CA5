@@ -1088,7 +1088,7 @@ private:
                     cout << powerUp.tmp << endl;
                     if(powerUp.tmp == 0)
                     {
-                        if(player.getLives() < 2)
+                        if(player.getLives() < 3)
                         {
                             cout << player.getLives() << endl;
                             player.incLive();
